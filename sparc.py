@@ -186,6 +186,8 @@ class SPARC:
     # ---------- hippocampus ----------
     def _hip_write(self, h, c):
         idx = np.argpartition(-h, self.k - 1)[:self.k]
+        val = h[idx]
+        idx = np.where(val > 0, idx, 0)      # empty slots point at unit 0 with value 0
         if self.h_n < self.M:
             j = self.h_n
             self.h_n += 1
@@ -193,7 +195,7 @@ class SPARC:
             cnt = np.bincount(self.h_lab[:self.h_n], minlength=self.C)
             cand = np.where(self.h_lab[:self.h_n] == cnt.argmax())[0]
             j = int(self.rng.choice(cand))
-        self.h_idx[j], self.h_val[j], self.h_lab[j] = idx, h[idx], c
+        self.h_idx[j], self.h_val[j], self.h_lab[j] = idx, val, c
         self.n_writes += 1
 
     # ---------- sleep ----------
@@ -307,7 +309,9 @@ class SPARC:
         for Mx in (self.A, self.R):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0
         if self.h_n:
-            self.h_idx[:self.h_n] = remap[self.h_idx[:self.h_n]]
+            hi = self.h_idx[:self.h_n]
+            hi[hi >= u] = 0
+            self.h_idx[:self.h_n] = np.maximum(remap[hi], 0)
         self.used = m
 
     # ---------- inference ----------
