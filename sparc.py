@@ -39,8 +39,8 @@ class SPARC:
                  # hippocampus + sleep (hip_M=0 disables)
                  hip_M=1000, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
-                 correct=False, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=False, clean_theta=0.9,
-                 lab_tau=1000.0, arbitrate=False, unc_tau=200.0):
+                 correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
+                 lab_tau=50.0, arbitrate=True, unc_tau=200.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
