@@ -1,0 +1,12 @@
+[main stream]
+  task 0 (0, 1): n=11339 8.4s  acc_per_task=0.996
+  task 1 (2, 3): n=10885 9.6s  acc_per_task=0.987 0.974
+  task 2 (4, 5): n=10180 11.8s  acc_per_task=0.977 0.973 0.982
+  task 3 (6, 7): n=10986 14.0s  acc_per_task=0.973 0.953 0.975 0.981
+  task 4 (8, 9): n=10610 14.3s  acc_per_task=0.964 0.927 0.935 0.948 0.929
+  ACC=0.9412 FGT=0.039630013497775174
+[few-shot / novelty]
+  FEW1=0.1664 old_drop=0.0175
+  FEW5=0.3395 old_drop=0.0241
+  NOVELTY AUROC=0.8688
+wrote results/sparc_it4_conf_e10_mnist_0_val.json  (124s)

@@ -10,3 +10,5 @@
   FEW5=0.4504 old_drop=0.0482
   NOVELTY AUROC=0.8782
 [5% labels]
+  LBL5=0.9275
+wrote results/sparc_it3_mnist_0_val.json  (165s)

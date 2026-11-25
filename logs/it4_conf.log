@@ -6,3 +6,7 @@
   task 4 (8, 9): n=10610 14.4s  acc_per_task=0.968 0.934 0.928 0.938 0.935
   ACC=0.9415 FGT=0.04028805941906424
 [few-shot / novelty]
+  FEW1=0.1714 old_drop=0.0216
+  FEW5=0.3109 old_drop=0.0264
+  NOVELTY AUROC=0.8745
+wrote results/sparc_it4_conf_mnist_0_val.json  (122s)

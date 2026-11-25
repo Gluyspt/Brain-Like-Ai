@@ -37,8 +37,8 @@ class SPARC:
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
-                 hip_M=0, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
-                 mix='conf', beta=20.0, n_cls=10):
+                 hip_M=1000, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
+                 mix='conf', beta=20.0, n_cls=10, match_track=True):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -64,6 +64,8 @@ class SPARC:
         self.sleep_epochs, self.sleep_eta, self.downscale = sleep_epochs, sleep_eta, downscale
         self.mix, self.beta = mix, beta
         self.slept = False
+        self.match_track = match_track
+        self.n_mt = 0
         # bookkeeping
         self.n_recruit = self.n_seen = self.n_merged = self.n_consol = self.n_sleep = self.n_writes = 0
         self.full_at = -1
@@ -112,6 +114,17 @@ class SPARC:
         d = s - self.s_mu
         self.s_mu += r * d
         self.s_var += r * (d * d - self.s_var)
+        c = None if y is None else int(np.asarray(y).ravel()[0])
+        if not novel and self.match_track and c is not None and u:
+            # match tracking: teaching signal contradicts the top-down prediction -> raise vigilance
+            seen = np.where(self.nc > 0)[0]
+            if self.nc[c] == 0:
+                novel = True
+            else:
+                h0 = _unit(self._code(a[None]))[0]
+                pred = seen[np.argmax(_unit(self.A[seen]) @ h0)]
+                novel = pred != c
+            self.n_mt += int(novel)
         if novel and self.used < self.N:
             # mismatch -> recruit a fresh unit, one-shot imprint
             j = self.used
@@ -129,8 +142,7 @@ class SPARC:
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
             a = self.W[:self.used] @ x
-        if y is not None:
-            c = int(np.asarray(y).ravel()[0])
+        if c is not None:
             h = self._code(a[None])[0]
             self.nc[c] += 1
             self.A[c] += (h - self.A[c]) / self.nc[c]
@@ -291,6 +303,6 @@ class SPARC:
     def diagnostics(self):
         return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen),
                     n_merged=int(self.n_merged), n_consol=int(self.n_consol), full_at=int(self.full_at),
-                    n_sleep=int(self.n_sleep), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
+                    n_sleep=int(self.n_sleep), n_match_track=int(self.n_mt), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
                     hip_per_class=[int(v) for v in np.bincount(self.h_lab[:self.h_n], minlength=self.C)],
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])
