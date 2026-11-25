@@ -16,13 +16,17 @@ class SPARC:
     batch_size = 1
 
     def __init__(self, seed=0, n_it=1500, k_it=15, rho=0.80, eta_min=0.0, n_cls=10, center=True, refine=True,
-                 recycle=False, grace=1000, adapt_z=None, adapt_tau=500,
-                 v1='none', v1_K=64, v1_k=3, v1_grid=3):
+                 recycle=False, grace=1000, recycle_nmax=np.inf, adapt_z=1.0, adapt_tau=500,
+                 v1='none', v1_K=64, v1_k=3, v1_grid=3,
+                 merge_frac=0.25, merge_at_task_end=True):
         self.refine = refine
-        self.recycle, self.grace = recycle, grace          # neuronal turnover
+        self.recycle, self.grace, self.recycle_nmax = recycle, grace, recycle_nmax          # neuronal turnover
         self.adapt_z, self.adapt_tau = adapt_z, adapt_tau  # adaptive vigilance (surprise vs its running stats)
         self.s_mu, self.s_var = 0.2, 0.01
         self.n_recycled = 0
+        self.merge_frac, self.merge_at_task_end = merge_frac, merge_at_task_end
+        self.n_merged = 0
+        self.n_consol = 0
         self.full_at = -1
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.eta_min, self.C = n_it, k_it, rho, eta_min, n_cls
@@ -89,10 +93,13 @@ class SPARC:
                 slot = u
                 self.used += 1
                 if self.used == self.N:
-                    self.full_at = self.n_seen
+                    if self.full_at < 0:
+                        self.full_at = self.n_seen
+                    if self.merge_frac > 0:   # sleep pressure: budget full -> consolidate
+                        self.consolidate()
             elif self.recycle:
                 # turnover: least-used unit that survived its grace period
-                old = (self.n_seen - self.born) > self.grace
+                old = ((self.n_seen - self.born) > self.grace) & (self.n <= self.recycle_nmax)
                 if old.any():
                     slot = int(np.where(old, self.n, np.inf).argmin())
                     self.A[:, slot] = 0.0        # its readout synapses are reset
@@ -120,7 +127,63 @@ class SPARC:
             self.A[c] += (h - self.A[c]) / self.nc[c]
 
     def end_task(self):
-        pass
+        if self.merge_frac > 0 and self.merge_at_task_end and self.used > (1 - self.merge_frac) * self.N:
+            self.consolidate()
+
+    def consolidate(self):
+        """Structural consolidation (sleep pressure): free merge_frac of the budget by merging the most
+        similar prototype pairs *within* the classes that hold more than a fair (water-filled) share.
+        Merged unit = usage-weighted mean of the two; their readout synapses add."""
+        self.n_consol += 1
+        u = self.used
+        target = int((1 - self.merge_frac) * self.N)
+        if u <= target:
+            return
+        lab = np.where(self.A[:, :u].max(0) > 0, self.A[:, :u].argmax(0), -1)
+        groups = {g: np.where(lab == g)[0] for g in np.unique(lab)}
+        cnt = np.array([len(v) for v in groups.values()])
+        lo, hi = 0, cnt.max()                      # water-filling cap
+        while lo < hi:
+            c = (lo + hi + 1) // 2
+            if np.minimum(cnt, c).sum() <= target:
+                lo = c
+            else:
+                hi = c - 1
+        cap = max(lo, 1)
+        keep_all = []
+        for g, idx in groups.items():
+            idx = list(idx)
+            while len(idx) > cap:
+                Wg = self.W[idx]
+                S = Wg @ Wg.T
+                np.fill_diagonal(S, -2)
+                need = len(idx) - cap
+                iu = np.triu_indices(len(idx), 1)
+                sv = S[iu]
+                taken = np.zeros(len(idx), bool)
+                drop = set()
+                for o in np.argsort(-sv):
+                    if len(drop) >= need:
+                        break
+                    i, j = iu[0][o], iu[1][o]
+                    if taken[i] or taken[j]:
+                        continue
+                    taken[i] = taken[j] = True
+                    gi, gj = idx[i], idx[j]
+                    ni, nj = self.n[gi], self.n[gj]
+                    self.W[gi] = _unit(ni * self.W[gi] + nj * self.W[gj])
+                    self.n[gi] = ni + nj
+                    self.A[:, gi] += self.A[:, gj]
+                    drop.add(j)
+                    self.n_merged += 1
+                idx = [v for t, v in enumerate(idx) if t not in drop]
+            keep_all += idx
+        keep = np.sort(np.array(keep_all, int))
+        m = len(keep)
+        for arr in (self.W, self.n, self.born):
+            arr[:m] = arr[keep]; arr[m:u] = 0
+        self.A[:, :m] = self.A[:, keep]; self.A[:, m:u] = 0
+        self.used = m
 
     # ---------- inference ----------
     def predict(self, X, allowed):
@@ -146,5 +209,5 @@ class SPARC:
                     it_used=int(self.used), it_budget=int(self.N))
 
     def diagnostics(self):
-        return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen), n_recycled=int(self.n_recycled), full_at=int(self.full_at),
+        return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen), n_recycled=int(self.n_recycled), n_merged=int(self.n_merged), n_consol=int(self.n_consol), full_at=int(self.full_at),
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])
