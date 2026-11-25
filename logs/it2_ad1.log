@@ -1,0 +1,8 @@
+[main stream]
+  task 0 (0, 1): n=11339 2.4s  acc_per_task=0.998
+  task 1 (2, 3): n=10885 6.7s  acc_per_task=0.992 0.978
+  task 2 (4, 5): n=10180 7.6s  acc_per_task=0.986 0.963 0.939
+  task 3 (6, 7): n=10986 5.7s  acc_per_task=0.978 0.949 0.915 0.931
+  task 4 (8, 9): n=10610 6.3s  acc_per_task=0.977 0.921 0.780 0.898 0.727
+  ACC=0.8650 FGT=0.06766502056531845
+wrote results/sparc_it2_ad1_mnist_0_val.json  (29s)

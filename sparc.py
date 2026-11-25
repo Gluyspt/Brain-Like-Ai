@@ -4,6 +4,7 @@ All plasticity is local (pre activity, post activity, broadcast scalar modulator
 No autograd, no backprop through layers. Batch 1, single pass. No raw-input storage.
 """
 import numpy as np
+from v1 import V1
 
 
 def _unit(x, axis=-1):
@@ -14,16 +15,24 @@ class SPARC:
     name = 'sparc'
     batch_size = 1
 
-    def __init__(self, seed=0, n_it=1500, k_it=15, rho=0.80, eta_min=0.0, n_cls=10, center=True, refine=True):
+    def __init__(self, seed=0, n_it=1500, k_it=15, rho=0.80, eta_min=0.0, n_cls=10, center=True, refine=True,
+                 recycle=False, grace=1000, adapt_z=None, adapt_tau=500,
+                 v1='none', v1_K=64, v1_k=3, v1_grid=3):
         self.refine = refine
+        self.recycle, self.grace = recycle, grace          # neuronal turnover
+        self.adapt_z, self.adapt_tau = adapt_z, adapt_tau  # adaptive vigilance (surprise vs its running stats)
+        self.s_mu, self.s_var = 0.2, 0.01
+        self.n_recycled = 0
         self.full_at = -1
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.eta_min, self.C = n_it, k_it, rho, eta_min, n_cls
         self.center = center
-        self.D = 784
+        self.v1 = None if v1 == 'none' else V1(self.rng, K=v1_K, k=v1_k, grid=v1_grid, mode=v1)
+        self.D = 784 if self.v1 is None else self.v1.out_dim
         # IT prototype layer (adaptive resonance)
         self.W = np.zeros((self.N, self.D), np.float32)
         self.n = np.zeros(self.N)            # usage counts (metaplasticity)
+        self.born = np.zeros(self.N)         # recruitment time
         self.used = 0                        # units recruited so far (budget = N)
         # fast readout: per-class running mean of sparse codes (fly-style, only row c changes)
         self.A = np.zeros((self.C, self.N), np.float32)
@@ -34,6 +43,8 @@ class SPARC:
     # ---------- encoding ----------
     def _pre(self, X):
         X = np.asarray(X, np.float32)
+        if self.v1 is not None:
+            X = self.v1.encode(X)
         if self.center:  # subtractive + divisive normalisation (retina-like)
             X = X - X.mean(1, keepdims=True)
         return _unit(X)
@@ -57,19 +68,41 @@ class SPARC:
 
     # ---------- learning ----------
     def learn(self, X, y=None):
+        if self.v1 is not None:
+            self.v1.learn(np.asarray(X, np.float32)[0])
         x = self._pre(X)[0]
         self.n_seen += 1
         u = self.used
         a = self.W[:u] @ x if u else np.zeros(0, np.float32)
         best = a.max() if u else -1.0
-        if best < self.rho and u < self.N:
+        s = 1.0 - best
+        novel = best < self.rho
+        if self.adapt_z is not None and u:
+            novel = novel and s > self.s_mu + self.adapt_z * np.sqrt(self.s_var)
+            r = 1.0 / self.adapt_tau
+            d = s - self.s_mu
+            self.s_mu += r * d
+            self.s_var += r * (d * d - self.s_var)
+        slot = None
+        if novel:
+            if u < self.N:
+                slot = u
+                self.used += 1
+                if self.used == self.N:
+                    self.full_at = self.n_seen
+            elif self.recycle:
+                # turnover: least-used unit that survived its grace period
+                old = (self.n_seen - self.born) > self.grace
+                if old.any():
+                    slot = int(np.where(old, self.n, np.inf).argmin())
+                    self.A[:, slot] = 0.0        # its readout synapses are reset
+                    self.n_recycled += 1
+        if slot is not None:
             # novelty -> recruit a fresh unit, one-shot imprint
-            self.W[u] = x
-            self.n[u] = 1
-            self.used += 1
+            self.W[slot] = x
+            self.n[slot] = 1
+            self.born[slot] = self.n_seen
             self.n_recruit += 1
-            if self.used == self.N:
-                self.full_at = self.n_seen
             a = self.W[:self.used] @ x
         elif self.refine and u:
             # resonance -> refine top-k winners, rate from own usage
@@ -102,13 +135,16 @@ class SPARC:
 
     def sparsity(self, X):
         H, _ = self.encode(X)
-        return {'IT': float((H != 0).mean())}
+        out = {'IT': float((H != 0).mean())}
+        if self.v1 is not None:
+            out['V1'] = self.v1.encode(np.asarray(X, np.float32), return_code_density=True)[1]
+        return out
 
     def stats(self):
-        p = self.W.size + self.A.size
+        p = self.W.size + self.A.size + (self.v1.D.size if self.v1 is not None else 0)
         return dict(params=int(p), stored_numbers=0, raw_images_stored=0,
                     it_used=int(self.used), it_budget=int(self.N))
 
     def diagnostics(self):
-        return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen), full_at=int(self.full_at),
+        return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen), n_recycled=int(self.n_recycled), full_at=int(self.full_at),
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])
