@@ -25,6 +25,8 @@ Design a new architecture whose **learning** works like a brain's, prove it on a
 Scope: the learning machinery, tested at small scale (image streams). Language scale is the roadmap (§11), not this loop.
 
 ## 3. Testable definition of "learns like a brain"
+> **Brain-first rule (user directive, 2026-11-25).** Every step or decision about the model or its training must make it act more like a real brain. Name the brain mechanism behind each change in the §10 log. A change that only raises an accuracy number with no brain analogue does not belong here, even if it scores better; when a brain-like and a score-only option compete, pick the brain-like one and log the cost. Accuracy targets in §7 are checks that the brain-like machinery works, not the objective.
+
 - **P1 Local:** every weight update uses only pre-synaptic activity, post-synaptic activity and broadcast scalar modulators (three-factor rule). No backprop, no autograd, no weight transport. A single-layer delta rule is allowed (the error lives at the output neuron itself, like a teaching input).
 - **P2 Online:** batch size 1, each example seen once, stream order (no shuffling, no epochs), learning and inference interleaved.
 - **P3 Continual:** class-incremental stream, no task labels at test time.
@@ -34,6 +36,7 @@ Scope: the learning machinery, tested at small scale (image streams). Language s
 - **P7 Fixed resources:** neuron budget fixed up front; no raw-input storage (no image replay buffer). Compressed internal codes are allowed (hippocampal index) with a declared, reported budget.
 - **P8 Novelty-aware:** an internal surprise signal that is high for never-seen classes.
 - **P9 Sleep:** an offline replay phase that measurably helps.
+- **P10 Self-correcting:** a wrong association can be unlearned when contrary evidence arrives (reversal learning), without damaging unrelated classes. Brain basis: confident-error prediction-error signals (dopamine/noradrenaline) boost plasticity where the mistake happened; recalled memories become labile again (reconsolidation); old links are often outcompeted rather than erased (extinction).
 
 ## 4. What we already learnt (research scan, Nov 2026)
 
@@ -103,6 +106,7 @@ image ─► V1  local patches, divisive normalisation, competitive-Hebbian
 - **LBL5**: full stream, only 5 % of examples carry a label.
 - **SPARSITY**: mean fraction of non-zero units per learned layer on test inputs.
 - **NOVELTY**: after task 4, AUROC of surprise s for unseen classes (8, 9) vs seen (0–7).
+- **REVERSAL**: after task 2 is learned, swap the labels of classes 2 and 3 for the rest of a labelled stream of those classes. Report examples needed until the new mapping reaches 80 % on those classes, and the accuracy change on all other classes. **NOISE**: 20 % of task-1–2 labels wrong, later correct data follows; report final accuracy on the affected classes vs a clean run.
 - **Seeds**: 1 for quick runs, 3 for the final confirmation.
 - Also log: wall-clock, parameter count, stored numbers.
 
@@ -129,6 +133,7 @@ Rough sanity ranges from memory, verify before trusting: B1 ≈ 20 % ACC (only t
 - **S2** sleep improves ACC or FGT by ≥ 1 pt.
 - **S3** every mechanism earns its place: ablating it costs ≥ 1 pt on some metric.
 - **S4** beats B4 by ≥ 8 pts ACC.
+- **S5** REVERSAL: new mapping adopted within ~100 examples per class, other classes drop ≤ 2 pts; NOISE: affected-class accuracy within 3 pts of the clean run.
 
 ## 8. Loop protocol
 Each iteration:
@@ -145,6 +150,7 @@ Suggested order (deviate when the data says so):
 - **It 3** — add V1 if ACC is below target (learned vs innate-Gabor ablation).
 - **It 4** — hippocampus + sleep; measure S2.
 - **It 5** — few-shot, few-label, novelty metrics; fix whichever fails.
+- **It 5b** — self-correction (P10): confident-mistake depression of active→wrong-class links (three-factor rule, M = confident error), reopen plasticity of the units active in the mistake (reconsolidation), evidence-weighted links so one bad label only nudges, sleep cleanup of conflicting hippocampal memories. Test with REVERSAL and NOISE. Known weakness it fixes: the fast readout only ever strengthens the labelled class, so a wrong link is only diluted, never removed.
 - **It 6+** — full run, ablations (S3), then Fashion-specific fixes.
 
 **Stop** when every MUST passes on the full bench → run ablations → write `ARCHITECTURE.md` (design, equations, brain mapping, results table, limits). Or stop after **12 iterations** and report the best version plus an honest gap analysis.
