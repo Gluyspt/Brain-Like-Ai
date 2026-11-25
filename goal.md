@@ -1,0 +1,340 @@
+# goal.md — Build an architecture that learns like a real brain
+
+> **Handoff brief for a Claude Code session.** Read the whole file, set up the agent team (§12), then run the loop in §8.
+> Update the iteration log (§10) after every run, failures included. Stop rule is in §8.
+> Status: research scan + starting design done (previous session, 2026-11-26). Nothing has been run yet.
+
+---
+
+## 1. Why
+Today's LLMs and deep nets learn in ways no brain does.
+
+| Brain | Backprop nets / LLMs |
+|---|---|
+| **Local plasticity**: a synapse changes using only its own pre/post activity plus a broadcast neuromodulator | **Global backprop**: exact error sent backwards through symmetric weights (weight transport); forward pass frozen while it happens |
+| Learns **online** from one continuous stream; each moment seen once | Shuffled i.i.d. data, many epochs, then frozen |
+| Keeps old skills while learning new ones | **Catastrophic forgetting** when trained sequentially |
+| **One-shot** learning of a new thing (hippocampus) | Thousands of gradient steps per new concept (outside the context window) |
+| Mostly **unsupervised**; labels and rewards are rare | Needs a dense training signal for every example |
+| **Sparse** activity (a few % of neurons active) | Dense activity, high energy |
+| **Knows when something is new** (mismatch / surprise signals) | Confidently wrong on novel inputs |
+| **Sleeps**: offline replay consolidates memories | No offline consolidation phase |
+
+## 2. Goal
+Design a new architecture whose **learning** works like a brain's, prove it on a benchmark that measures brain-like learning, and iterate until it passes.
+Scope: the learning machinery, tested at small scale (image streams). Language scale is the roadmap (§11), not this loop.
+
+## 3. Testable definition of "learns like a brain"
+- **P1 Local:** every weight update uses only pre-synaptic activity, post-synaptic activity and broadcast scalar modulators (three-factor rule). No backprop, no autograd, no weight transport. A single-layer delta rule is allowed (the error lives at the output neuron itself, like a teaching input).
+- **P2 Online:** batch size 1, each example seen once, stream order (no shuffling, no epochs), learning and inference interleaved.
+- **P3 Continual:** class-incremental stream, no task labels at test time.
+- **P4 Fast:** learns a new class from 1–5 examples without disturbing old classes.
+- **P5 Mostly unsupervised:** representations learned without labels; labels only bind representations to names.
+- **P6 Sparse:** ≤ 5 % of units active per input in every learned layer.
+- **P7 Fixed resources:** neuron budget fixed up front; no raw-input storage (no image replay buffer). Compressed internal codes are allowed (hippocampal index) with a declared, reported budget.
+- **P8 Novelty-aware:** an internal surprise signal that is high for never-seen classes.
+- **P9 Sleep:** an offline replay phase that measurably helps.
+
+## 4. What we already learnt (research scan, Nov 2026)
+
+| Idea | What it shows | Use it for |
+|---|---|---|
+| **Fruit-fly mushroom body** (Shen, Dasgupta & Navlakha 2021; Neural Computation 2023) | Layer 1 encodes inputs as sparse, high-dimensional codes so different inputs use non-overlapping neurons; layer 2 changes only the synapses between active neurons and the correct output neuron, everything else frozen. Cuts catastrophic forgetting. Zou et al. 2025 turn it into a plug-in "Fly Model". | Sparse expansion + associative readout that never touches other classes |
+| **Adaptive Resonance Theory** (Grossberg; ART survey 2019; Masuyama et al. 2025, self-adjusting vigilance) | Solves stability vs plasticity: refine an existing category only when input matches it well enough (resonance); otherwise recruit a new unit. Top-down match = a prediction check. Recent work makes vigilance self-adjusting and tests class-incremental learning. | Vigilance-based unit recruitment; surprise = 1 − match |
+| **SoftHebb** (Journé et al., ICLR 2023) | Multilayer Hebbian learning in soft winner-take-all nets with **no feedback, target or error signal**; 99.4 % MNIST, 80.3 % CIFAR-10 (up to 5 hidden layers + linear classifier), unsupervised part in a single epoch. | Feedback-free, fast feature learning; proof that local rules can reach useful accuracy |
+| **Sleep Replay Consolidation** (Tadros et al., Nature Comms 2022) | An offline "sleep" phase with local unsupervised Hebbian plasticity and noisy input recovered old tasks that were otherwise forgotten. | Sleep phase design |
+| **HiCL** (AAAI 2026) | Hippocampus-inspired continual learner: grid-cell-like encoder, dentate-gyrus top-k sparsity, CA3 autoassociative memory, prototype-gated experts, prioritized replay. Still trained with gradients (EWC + replay). | DG top-k pattern separation, prototype gating, prioritized replay |
+| **Nested Learning / Hope** (Google Research, Nov 2025) | Frames a model as nested optimisation problems updating at different frequencies ("continuum memory system"); Hope builds on Titans, whose long-term memory prioritises surprising inputs. Backprop-based. | Multi-timescale plasticity; surprise-gated memory writes |
+| **Dragon Hatchling, BDH** (Pathway, Sep 2025) | LLM built from locally interacting neurons; working memory during inference relies on Hebbian synaptic plasticity; authors report GPT-2-level results at 10M–1B parameters. | Evidence that Hebbian fast weights can work at language scale (roadmap) |
+| **Hebbian learning with global direction** (Jan 2026) | Oja's rule + competitive learning, steered by a neuromodulator-like global signal. | Three-factor rule: local Hebbian term × global scalar |
+
+**Takeaways that drive the design**
+1. Forgetting is mostly **interference**. Sparse, high-dimensional codes plus updating only active synapses removes most of it (fly).
+2. **Recruit new units for novel input; refine old units only on a good match** (ART). Stability without freezing everything.
+3. **Use-dependent plasticity** (learning rate ∝ 1/usage) makes heavily used units stable, like a critical period, while fresh units stay plastic.
+4. Local, feedback-free layers can learn good features fast (SoftHebb), so backprop is not required for usable representations.
+5. **Sleep with replay** can repair what waking learning damaged (SRC).
+6. Gap: the systems above each cover a few properties, and most continual-learning systems still train with backprop over many epochs. In this scan we did not find one model tested on **all** of P1–P9 at once under strict rules. That combined, measured system is the contribution; do not claim the individual parts are new.
+
+## 5. Starting design (hypothesis v1) — working name **SPARC**
+*Sparse, Predictive, Adaptive-Resonance network with Consolidation.* Treat everything here as a hypothesis the loop is allowed to change.
+
+```
+image ─► V1  local patches, divisive normalisation, competitive-Hebbian
+         │   dictionary, k-winners-take-all per position, spatial pooling
+         ▼
+         IT  adaptive-resonance prototype layer: cosine match, k-WTA,
+         │   vigilance recruitment; surprise s = 1 − max match
+         ▼ sparse code h
+   ┌─────┴──────────────────────────────┐
+   ▼                                    ▼
+ FAST readout (fly-style)          HIPPOCAMPUS: bounded store of sparse
+ only true class row, only         codes, written with prob ∝ surprise
+ active synapses change                 │ (sleep: balanced replay)
+   │                                    ▼
+   │                               SLOW cortical readout (delta rule,
+   │                               trained only during sleep) + downscaling
+   └──────────► combine by confidence ◄─┘
+ surprise s (ACh/NE analogue) gates: plasticity, recruitment, memory writes
+```
+
+**Learning rules (all local)**
+- Generic three-factor form: `Δw_ij = η_i · M · y_i · (x_j − w_ij)` — η_i from the unit's own usage, M a broadcast modulator (surprise or reward), y post, x pre.
+- **V1 dictionary** (K ≈ 64 features, 5×5 patches, contrast-normalised): for each sampled patch p, winner k moves `d_k ← normalise(d_k + η_k (p − d_k))`, with `η_k = max(1/n_k, η_min)`. If best match < ρ₁ and unused units remain, imprint p onto a new unit. Encode with k-WTA per position (≈3 of 64) then pool over a 3×3 grid (≈576-d). Ablation: innate fixed Gabor bank (developmental prior) vs learned.
+- **IT layer** (budget N ≈ 1500, k ≈ 15 active, i.e. 1 %): `a = W x` (cosine). If `max a < ρ` and free units remain → imprint `w_new = x` (one-shot). Else top-k winners: `w_i ← normalise(w_i + η_i a_i (x − w_i))`, `η_i = 1/(1 + n_i)`. Surprise `s = 1 − max a`.
+- **Fast readout**: labelled sample of class c → `A_c ← A_c + (h − A_c)/n_c` (only row c changes). Predict `argmax_c cos(A_c, h)`. No depression of other classes, so no recency bias.
+- **Hippocampus**: store (top-k indices, values, label) with probability rising with s; capacity M ≈ 1000 codes (≈ 1000 × 15 × 2 numbers — report this budget against a 500-image raw buffer).
+- **Sleep** (after each task, or every N samples): replay stored codes class-balanced; train slow readout R with `ΔR = η (onehot(c) − softmax(R h)) hᵀ`; then multiplicative downscaling (homeostasis). Final score = confidence-weighted mix of fast and slow readouts.
+- **Few labels**: V1 and IT learn from every sample; readouts only from labelled ones.
+
+**Known risks and first fixes to try**
+1. *Feature drift*: if V1/IT keep moving, stored class means go stale → 1/usage learning rates, slower V1 than IT, or re-anchor during sleep.
+2. *Budget exhausted early*: vigilance too strict → adaptive vigilance (recruit when s is in the top x % of recent surprises) or recycle the least-used unit.
+3. *Recency bias*: any softmax/delta readout trained online on a class-incremental stream will favour new classes → train it only in sleep with balanced replay.
+4. *Few-shot misses*: novel test images may activate old units → check that few-shot examples recruit units; allow several prototypes per class.
+5. *Fake wins*: count every stored number; tune on validation only; never use task labels at test.
+
+## 6. Benchmark protocol (`bench.py`)
+- **Data**: MNIST and Fashion-MNIST (60k train / 10k test). Hold out 10 % of train as validation for all tuning (`--split val`); touch the test set only for logged results (`--split test`).
+- **Stream**: 5 tasks × 2 classes `(0,1)(2,3)(4,5)(6,7)(8,9)`, class-incremental, single pass. SPARC batch 1. Baselines batch 10 (standard online-CL setting, generous to them).
+- **ACC**: final 10-way test accuracy.
+- **FGT**: for tasks j = 1..4, `max_t acc_j(t) − acc_j(final)`, where `acc_j(t)` is accuracy on task j's test classes after task t (predicting over all classes seen so far); mean over j.
+- **FEW-k** (k = 1, 5): learn tasks 1–4, then present only k labelled examples each of classes 8 and 9 (seeded draw, batch 1). Report accuracy on 8/9 test images (10-way) and the accuracy drop on classes 0–7.
+- **LBL5**: full stream, only 5 % of examples carry a label.
+- **SPARSITY**: mean fraction of non-zero units per learned layer on test inputs.
+- **NOVELTY**: after task 4, AUROC of surprise s for unseen classes (8, 9) vs seen (0–7).
+- **Seeds**: 1 for quick runs, 3 for the final confirmation.
+- Also log: wall-clock, parameter count, stored numbers.
+
+**Baselines**
+- **B1** backprop MLP 784-400-400-10, same stream (expect catastrophic forgetting).
+- **B2** B1 + experience replay of 500 raw images (reservoir; each step 10 current + 10 replayed). Standard CL baseline; violates P7.
+- **B3** backprop MLP, joint shuffled data, 10 epochs (upper bound; violates P2, P3).
+- **B4** nearest class mean on raw pixels (no feature learning).
+
+Rough sanity ranges from memory, verify before trusting: B1 ≈ 20 % ACC (only the last task's classes get predicted); B3 ≈ 98 % MNIST / ≈ 89 % Fashion; B4 ≈ 82 % MNIST.
+
+## 7. Success criteria
+**MUST** (mean of 3 seeds, both datasets unless stated)
+- **M1** P1, P2, P6, P7 hold by construction (code audit: no autograd, no shuffling, no raw buffer).
+- **M2** ACC ≥ 90 % MNIST, ≥ 75 % Fashion.
+- **M3** FGT ≤ 5 pts MNIST, ≤ 10 pts Fashion.
+- **M4** beats B1 and B2 on ACC; within 10 pts of B3 on MNIST.
+- **M5** FEW-5 novel-class accuracy ≥ 70 % MNIST, ≥ 50 % Fashion, with old-class drop ≤ 2 pts.
+- **M6** LBL5 ACC within 5 pts of full-label ACC.
+- **M7** ≤ 5 % active units in every learned layer.
+
+**SHOULD**
+- **S1** NOVELTY AUROC ≥ 0.80 (MNIST).
+- **S2** sleep improves ACC or FGT by ≥ 1 pt.
+- **S3** every mechanism earns its place: ablating it costs ≥ 1 pt on some metric.
+- **S4** beats B4 by ≥ 8 pts ACC.
+
+## 8. Loop protocol
+Each iteration:
+1. **Hypothesis**: which brain mechanism should fix which observed failure (one sentence). Main session only.
+2. **Implement** the smallest change. One change per iteration. When two or three fixes compete, give each to a `variant` agent in parallel (§12) and keep the winner.
+3. **Run** quick bench (MNIST, seed 0). Full bench (2 datasets × 3 seeds) only once quick passes, handed to a `runner` agent.
+4. **Log** the numbers against §7 in §10, after opening the JSON files yourself.
+5. **Diagnose** → next hypothesis. Main session only.
+
+Suggested order (deviate when the data says so):
+- **It 0** — setup from §12 (git, CLAUDE.md, agent files); a `builder` writes data.py / baselines.py / bench.py; a `runner` runs B1–B4; check the sanity ranges in §6.
+- **It 1** — IT layer + fast readout on raw pixels (no V1): tests the core anti-forgetting mechanism.
+- **It 2** — metaplasticity + vigilance recruitment tuning if FGT is high.
+- **It 3** — add V1 if ACC is below target (learned vs innate-Gabor ablation).
+- **It 4** — hippocampus + sleep; measure S2.
+- **It 5** — few-shot, few-label, novelty metrics; fix whichever fails.
+- **It 6+** — full run, ablations (S3), then Fashion-specific fixes.
+
+**Stop** when every MUST passes on the full bench → run ablations → write `ARCHITECTURE.md` (design, equations, brain mapping, results table, limits). Or stop after **12 iterations** and report the best version plus an honest gap analysis.
+
+## 9. Environment notes
+- Both data sources returned HTTP 200 from a sandbox on 2026-11-26:
+  - MNIST: `https://raw.githubusercontent.com/fgnt/mnist/master/<file>`
+  - Fashion: `https://raw.githubusercontent.com/zalandoresearch/fashion-mnist/master/data/fashion/<file>`
+  - `<file>` ∈ `train-images-idx3-ubyte.gz`, `train-labels-idx1-ubyte.gz`, `t10k-images-idx3-ubyte.gz`, `t10k-labels-idx1-ubyte.gz`. Parse with `gzip` + `numpy.frombuffer` (images: skip 16-byte header, labels: 8).
+  - Offline fallback: `sklearn.datasets.load_digits()` (8×8, no download).
+- numpy + scikit-learn are enough. Baselines can be a small numpy MLP; use PyTorch only if already installed (never inside SPARC).
+- Speed (rough estimate): a per-sample Python loop with ~1500 IT units should be about 1 ms/sample, so about a minute per 60k pass on CPU. Batch the test-set encoding.
+- Suggested layout:
+  ```
+  goal.md        this file (keep the log current)
+  data.py        load datasets, build the class-incremental stream
+  baselines.py   numpy MLP (B1–B3), nearest class mean (B4)
+  sparc.py       the architecture (no autograd anywhere)
+  bench.py       protocol + metrics → results/<model>_<data>_<seed>.json
+  results/
+  ```
+  e.g. `python bench.py --model sparc --data mnist --seed 0 --split val --quick`
+
+## 10. Iteration log
+| # | Hypothesis / change | MNIST ACC | FGT | Other | Agents (model/effort) | Verdict |
+|---|---|---|---|---|---|---|
+| – | Research + design only; nothing run yet | – | – | – | – | start at It 0 |
+
+## 11. Roadmap after the loop
+1. **Time**: add temporal prediction (predict the next input from the current sparse code with dendrite-like context), test on sequence streams, then character-level text.
+2. **Depth**: stack local layers (SoftHebb-style) for CIFAR-10/100.
+3. **Reward**: dopamine-like reward-prediction error as the modulator M for reinforcement learning.
+4. **Language**: compare a SPARC-style continual learner with BDH and Nested-Learning/Hope on continual language modelling.
+
+## 12. Agent team — when and how to spawn subagents
+**Principle:** the main session is the scientist; subagents are lab techs. Judgement never leaves the main session: hypotheses, diagnosis, pass/fail calls, merging code, editing goal.md, the final write-up. Work that is self-contained, fits in a short brief and can be checked from the files it produces goes to the **cheapest model and lowest effort that can do it**.
+
+**Spawn** when a task is self-contained, checkable from its output files, and either parallel (seeds, datasets, ablations, competing variants) or long and mechanical (writing a loader, babysitting a batch of runs).
+**Don't spawn** for a few tool calls of work, for anything that needs this session's accumulated context (diagnosis), or for one plain command: a background Bash run is cheaper than an agent.
+
+### Roles
+| Role | Use it for | Model | Effort | Isolation | Parallel? |
+|---|---|---|---|---|---|
+| **Main session** | hypotheses, diagnosis, pass/fail, merging, goal.md, ARCHITECTURE.md | strongest available (Opus) | high–max | – | – |
+| **builder** | data.py, baselines.py, metrics, bench.py, plots: any clearly specified module | sonnet | medium | own files only | yes, if files don't overlap |
+| **variant** | one competing hypothesis, implemented and quick-benched | sonnet | high | worktree | yes, 2–3 at a time |
+| **sweeper** | hyperparameter grid on the validation split | sonnet | medium | – | one per grid |
+| **runner** | a fixed list of bench commands (seeds × datasets × ablations), retry crashes, results table | haiku | low | – | yes |
+| **scout** | one narrow literature question, e.g. "published ER-500 numbers for online class-incremental Split-MNIST?" | haiku (sonnet if it struggles) | low | – | yes |
+| **auditor** | fresh-eyes check of M1 rules and of every reported number vs the JSON files | sonnet | high | – | after big merges + at the end |
+
+**Escalation ladder:** start at the role's default. If an agent fails twice, or its numbers don't reproduce when you re-run seed 0 yourself, retry one step up (haiku → sonnet → opus; low → medium → high) and note it in §10. If an effort level isn't available for a model, use the nearest one.
+
+### Writing the brief (subagents start cold)
+A subagent does not see this conversation, the files you have read, or earlier results. It does load CLAUDE.md, so the hard rules live there (setup below) and briefs stay short:
+```
+GOAL:       <one line>
+READ FIRST: goal.md §3 and §6; <other files>
+DO:         <steps or exact commands>
+DON'T:      edit goal.md; touch files outside <list>; select anything using test metrics; add autograd to sparc.py
+OUTPUT:     <files> + report of ≤10 lines: exact command, numbers copied from the JSON, any ambiguity resolved
+DONE WHEN:  <check>
+```
+
+### Rules
+1. **One writer per file.** Only the main session edits goal.md and merges into sparc.py. Subagents write only their own files (results/<run>.json, figs/, their worktree).
+2. **Trust files, not prose.** Log a number only after opening its JSON. Re-run seed 0 yourself for any result that changes a decision.
+3. **Commit before spawning variants.** Worktree subagents branch from the default branch, not your current HEAD, so uncommitted work is invisible to them. Commit after every iteration anyway (message = the log line).
+4. **CPU is the real limit.** Concurrent bench processes ≤ CPU cores, each with `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1`. Claude Code allows 20 concurrent subagents by default, far more than a laptop can feed.
+5. **No nesting.** The agent files below leave out the Agent tool, so only the main session spawns; cost stays predictable.
+6. **Background by default.** Spawned subagents run in the background. Keep working (draft the next hypothesis) and never guess a pending result.
+7. **Batch small things.** One runner with 12 commands beats 12 agents with one each.
+8. **Don't force one model globally.** Leave `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` and `CLAUDE_CODE_EFFORT_LEVEL` unset, or they override the per-role settings.
+9. **Forks** (`/subtask`) inherit the whole conversation: use one only when a subtask truly needs that context; it is not a way to save cost.
+
+### Setup (It 0, step 1)
+1. `git init` and commit goal.md (worktree isolation needs git).
+2. Create `CLAUDE.md` (every subagent loads it):
+   ```markdown
+   # Project rules (all agents)
+   - Source of truth: goal.md. Only the main session edits it.
+   - SPARC stays local: no autograd, no backprop through layers, batch 1, single pass, no raw-image storage.
+   - Tune on the validation split only (--split val). The test set is for logged results.
+   - Touch only the files your task names. Report numbers copied from results JSON, never estimated.
+   ```
+3. Create the six files below in `.claude/agents/` (each code block is the whole file, frontmatter on line 1) and check they appear in `/agents`. Per call, the Agent tool's `model` (sonnet / opus / haiku / fable) and `effort` parameters override a file's settings.
+
+`.claude/agents/builder.md`
+```markdown
+---
+name: builder
+description: Implements one clearly specified module of the brain-like learning project (data, baselines, metrics, bench harness, plots) and smoke-tests it. Not for design decisions.
+tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
+effort: medium
+---
+Implement exactly the spec in the task and touch only the files it names. Run a smoke test before returning.
+Report: files changed, test command and its last 10 output lines, any ambiguity you resolved.
+```
+
+`.claude/agents/variant.md`
+```markdown
+---
+name: variant
+description: Implements ONE candidate change to sparc.py in an isolated worktree, runs the quick bench and reports numbers plus the diff. Use to test competing hypotheses in parallel.
+tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
+effort: high
+isolation: worktree
+---
+Implement only the hypothesis in the task, keeping every P1–P7 rule in goal.md §3.
+Run: python bench.py --model sparc --data mnist --seed 0 --split val --quick
+Report: worktree path, diff summary, exact command, results JSON path, ACC / FGT / sparsity copied from the JSON, one sentence on what went wrong if anything. Merge nothing.
+```
+
+`.claude/agents/sweeper.md`
+```markdown
+---
+name: sweeper
+description: Runs a SPARC hyperparameter grid on the validation split and returns the full table. Never selects using test metrics.
+tools: Read, Write, Bash, Glob
+model: sonnet
+effort: medium
+---
+Run the grid in the task with --split val only, at most the number of parallel processes the task allows, each with OMP_NUM_THREADS=1.
+Write results/sweep_<name>.csv. Report its path and the top 5 rows. Change no code defaults: the main session picks.
+```
+
+`.claude/agents/runner.md`
+```markdown
+---
+name: runner
+description: Runs a given list of bench.py commands with limited parallelism, retries a crashed run once and returns a results table copied from the JSON files. Never edits code.
+tools: Bash, Read, Glob
+model: haiku
+effort: low
+---
+Run the commands in the task, at most N at a time (N is in the task), each with OMP_NUM_THREADS=1.
+If a run crashes, rerun it once; if it crashes again, report its last 20 error lines.
+Return a markdown table: command, ACC, FGT and the other metrics, copied from each JSON, never estimated.
+```
+
+`.claude/agents/scout.md`
+```markdown
+---
+name: scout
+description: Answers one narrow literature question (prior work, published baseline numbers) with links. Says "not found" instead of guessing.
+tools: WebSearch, WebFetch, Read
+model: haiku
+effort: low
+---
+Answer only the question asked, in at most 8 bullets, with a URL for every claim.
+When sources disagree, give each number with its setting (online vs offline, buffer size, class- vs task-incremental).
+```
+
+`.claude/agents/auditor.md`
+```markdown
+---
+name: auditor
+description: Fresh-eyes reviewer. Checks that SPARC obeys the locality, online and no-raw-storage rules and that every reported number matches a results JSON. Edits nothing but its report.
+tools: Read, Grep, Glob, Bash
+model: sonnet
+effort: high
+---
+Assume nothing. Check: no autograd or gradient libraries and no backprop through layers in sparc.py; batch 1, single pass, no shuffling; no raw-input buffers; fixed neuron budget; test set never used for selection; every number in goal.md §10 (and ARCHITECTURE.md if present) matches a results JSON.
+Write audit.md with PASS/FAIL per item and file:line evidence.
+```
+
+### Example fan-out for one iteration
+```
+It 3 — "add a V1 layer"
+main      writes hypothesis + interface spec, commits
+ ├─ variant A  (sonnet/high, worktree)  learned competitive-Hebbian dictionary
+ └─ variant B  (sonnet/high, worktree)  innate Gabor bank
+main      opens both JSONs, merges the winner, commits, logs in §10
+ └─ runner     (haiku/low)              2 datasets × 3 seeds → results/*.json   (only if quick bench passed)
+main      updates §10
+ └─ auditor    (sonnet/high)            M1 audit of the merged code
+```
+
+## References
+- Shen, Dasgupta, Navlakha — Algorithmic insights on continual learning from fruit flies: https://arxiv.org/abs/2107.07617
+- Zou, Zang, Ji — Structural features of the fly olfactory circuit mitigate the stability-plasticity dilemma: https://arxiv.org/abs/2502.01427
+- Grossberg — Adaptive resonance theory (Scholarpedia): https://doi.org/10.4249/scholarpedia.1569
+- da Silva et al. — A survey of ART neural network models: https://arxiv.org/abs/1905.11437
+- Masuyama et al. — ART-based topological clustering with self-adjusting vigilance: https://arxiv.org/abs/2511.17983
+- Journé et al. — Hebbian deep learning without feedback (SoftHebb): https://arxiv.org/abs/2209.11883
+- Tadros et al. — Sleep-like unsupervised replay reduces catastrophic forgetting: https://doi.org/10.1038/s41467-022-34938-7
+- Kapoor et al. — HiCL: Hippocampal-inspired continual learning: https://arxiv.org/abs/2508.16651
+- Google Research — Introducing Nested Learning: https://research.google/blog/introducing-nested-learning-a-new-ml-paradigm-for-continual-learning/
+- Kosowski et al. — The Dragon Hatchling (BDH): https://arxiv.org/abs/2509.26507
+- Hua et al. — Hebbian learning with global direction: https://arxiv.org/abs/2601.21367
+- Claude Code docs — Subagents (frontmatter, model and effort order, background runs, worktree isolation): https://code.claude.com/docs/en/sub-agents
