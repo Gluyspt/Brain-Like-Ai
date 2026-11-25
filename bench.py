@@ -26,6 +26,8 @@ def parse_val(v):
             pass
     if v in ('True', 'False'):
         return v == 'True'
+    if v == 'None':
+        return None
     return v
 
 
