@@ -172,6 +172,8 @@ Suggested order (deviate when the data says so):
 | # | Hypothesis / change | MNIST ACC | FGT | Other | Agents (model/effort) | Verdict |
 |---|---|---|---|---|---|---|
 | – | Research + design only; nothing run yet | – | – | – | – | start at It 0 |
+| 0 | Setup (§12) + data.py/baselines.py (builder) + bench.py (main). Baselines MNIST val seed 0, full stream: **B1** ACC 19.6 / FGT 99.4; **B2** (ER-500) ACC 85.5 / FGT 17.1 / FEW5 66.2 (old drop 24.8); **B3** joint 97.9; **B4** NCM 81.2 / FGT 7.5 | – | – | All in §6 sanity ranges | builder: sonnet/medium (general-purpose: .claude/agents files only register after a session restart); baselines run as a plain background command (no runner needed) | OK |
+| 1 | IT ART layer (N=1500, k=15, rho=0.8, eta=1/(1+n)) + fly fast readout on raw centred pixels | 85.6 (quick 85.6) | 6.8 | quick: FEW1 14.5, FEW5 34.9 (drop 3.7), LBL5 84.8, NOV 0.81, sparsity 1.0 %. Diagnosis: budget full at sample 12.5k of 54k; units/class 365…50. n_it=6000 → 93.2 / 3.6; refine=False → 79.4 / 10.4; rho=0.7 → 88.3 / 5.7 (full at 24.8k) | main | budget exhaustion is the main failure → It 2 |
 
 ## 11. Roadmap after the loop
 1. **Time**: add temporal prediction (predict the next input from the current sparse code with dendrite-like context), test on sequence streams, then character-level text.

@@ -1,0 +1,13 @@
+[main stream]
+  task 0 (0, 1): n=11339 0.0s  acc_per_task=0.989
+  task 1 (2, 3): n=10885 0.0s  acc_per_task=0.953 0.878
+  task 2 (4, 5): n=10180 0.0s  acc_per_task=0.922 0.824 0.831
+  task 3 (6, 7): n=10986 0.0s  acc_per_task=0.919 0.809 0.814 0.883
+  task 4 (8, 9): n=10610 0.0s  acc_per_task=0.910 0.778 0.732 0.860 0.760
+  ACC=0.8118 FGT=0.07505232902034992
+[few-shot / novelty]
+  FEW1=0.0151 old_drop=0.0000
+  FEW5=0.2807 old_drop=0.0112
+[5% labels]
+  LBL5=0.8135
+wrote results/b4_mnist_0_val.json  (0s)
