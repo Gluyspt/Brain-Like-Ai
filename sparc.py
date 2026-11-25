@@ -38,7 +38,8 @@ class SPARC:
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
                  hip_M=1000, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
-                 mix='conf', beta=20.0, n_cls=10, match_track=True):
+                 mix='conf', beta=20.0, n_cls=10, match_track=True,
+                 correct=False, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=False, clean_theta=0.9):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -66,6 +67,10 @@ class SPARC:
         self.slept = False
         self.match_track = match_track
         self.n_mt = 0
+        # self-correction (P10)
+        self.correct, self.err_theta, self.reopen, self.ltd = correct, err_theta, reopen, ltd
+        self.sleep_clean, self.clean_theta = sleep_clean, clean_theta
+        self.n_conf_err = self.n_cleaned = 0
         # bookkeeping
         self.n_recruit = self.n_seen = self.n_merged = self.n_consol = self.n_sleep = self.n_writes = 0
         self.full_at = -1
@@ -144,6 +149,8 @@ class SPARC:
             a = self.W[:self.used] @ x
         if c is not None:
             h = self._code(a[None])[0]
+            if self.correct and self.nc[c] > 0:
+                self._confident_error(h, c)
             self.nc[c] += 1
             self.A[c] += (h - self.A[c]) / self.nc[c]
             if self.M > 0:
@@ -152,6 +159,29 @@ class SPARC:
                     self._hip_write(h, c)
         if self.used == self.N and self.merge_frac > 0:     # sleep pressure: budget full
             self.consolidate()
+
+    def _confident_error(self, h, c):
+        """Three-factor correction. A confident wrong prediction releases an error modulator M (NE/DA-like):
+        (1) LTD at the active synapses onto the wrongly predicted output neuron, scaled by that neuron's
+            own plasticity (evidence-weighted: a well-confirmed link only gets nudged);
+        (2) reconsolidation: both output neurons involved lose part of their accumulated evidence count,
+            so repeated errors re-open their plasticity while a single bad label barely matters."""
+        seen = np.where(self.nc > 0)[0]
+        if len(seen) < 2:
+            return
+        hn = h / (np.linalg.norm(h) + 1e-8)
+        pf = _softmax(self.beta * (_unit(self.A[seen]) @ hn))
+        j = int(pf.argmax())
+        cp, q = int(seen[j]), float(pf[j])
+        if cp == c or q < self.err_theta:
+            return
+        M = q
+        act = h > 0
+        g = min(1.0, self.ltd * M * 50.0 / (50.0 + self.nc[cp]))
+        self.A[cp, act] *= (1.0 - g * hn[act] / (hn[act].max() + 1e-8))
+        self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))
+        self.nc[cp] = max(1.0, self.nc[cp] * (1.0 - self.reopen * M))
+        self.n_conf_err += 1
 
     # ---------- hippocampus ----------
     def _hip_write(self, h, c):
@@ -177,6 +207,10 @@ class SPARC:
         """Offline replay: class-balanced reactivation of hippocampal codes trains the slow readout
         with a single-layer delta rule (error lives at the output neuron), then synaptic downscaling."""
         self.n_sleep += 1
+        if self.sleep_clean:
+            self._sleep_clean()
+        if self.h_n == 0:
+            return
         lab = self.h_lab[:self.h_n]
         classes = np.unique(lab)
         by_c = {c: np.where(lab == c)[0] for c in classes}
@@ -193,6 +227,22 @@ class SPARC:
         if self.downscale > 0:
             self.R *= (1.0 - self.downscale)
         self.slept = True
+
+    def _sleep_clean(self):
+        """Replay each trace against current fast (recent) knowledge; traces whose label is confidently
+        contradicted are dropped (newer confirmed evidence wins; active forgetting during sleep)."""
+        seen = np.where(self.nc > 0)[0]
+        n = self.h_n
+        H = np.zeros((n, self.N), np.float32)
+        np.add.at(H, (np.repeat(np.arange(n), self.k), self.h_idx[:n].ravel()), self.h_val[:n].ravel())
+        pf = _softmax(self.beta * (_unit(H) @ _unit(self.A[seen]).T))
+        pred, q = seen[pf.argmax(1)], pf.max(1)
+        keep = ~((pred != self.h_lab[:n]) & (q > self.clean_theta))
+        m = int(keep.sum())
+        self.n_cleaned += n - m
+        for arr in (self.h_idx, self.h_val, self.h_lab):
+            arr[:m] = arr[:n][keep]
+        self.h_n = m
 
     def consolidate(self):
         """Structural consolidation: free merge_frac of the budget by merging the most similar
@@ -303,6 +353,6 @@ class SPARC:
     def diagnostics(self):
         return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen),
                     n_merged=int(self.n_merged), n_consol=int(self.n_consol), full_at=int(self.full_at),
-                    n_sleep=int(self.n_sleep), n_match_track=int(self.n_mt), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
+                    n_sleep=int(self.n_sleep), n_match_track=int(self.n_mt), n_conf_err=int(self.n_conf_err), n_cleaned=int(self.n_cleaned), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
                     hip_per_class=[int(v) for v in np.bincount(self.h_lab[:self.h_n], minlength=self.C)],
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])

@@ -1,2 +1,4 @@
 [main stream]
   task 0 (0, 1): n=11339 8.4s  acc_per_task=0.998
+  task 1 (2, 3): n=10885 11.8s  acc_per_task=0.991 0.980
+  task 2 (4, 5): n=10180 15.4s  acc_per_task=0.983 0.971 0.979
