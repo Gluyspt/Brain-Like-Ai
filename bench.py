@@ -96,7 +96,7 @@ def main():
     ap.add_argument('--quick', action='store_true', help='cap train at 1000 samples per class')
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
     ap.add_argument('--tag', default='')
-    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl')
+    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev')
     ap.add_argument('--out', default='results')
     a = ap.parse_args()
 
@@ -171,6 +171,59 @@ def main():
         run_stream(model, Xtr, ytr, Xev, yev, cap, label_frac=0.05, rng=rng, log=False)
         res['LBL5'] = acc_on(model, Xev, yev, all_cls, all_cls)
         print(f"  LBL5={res['LBL5']:.4f}", flush=True)
+
+    # ---- self-correction (P10): reversal + label noise on tasks 1-2 (classes 0-3) ----
+    if 'rev' in parts and a.model != 'b3':
+        print('[reversal / noise]', flush=True)
+        cls4 = [0, 1, 2, 3]
+        halves = {}
+        for t in TASKS[:2]:
+            idx = task_indices(ytr, t, cap)
+            halves[t] = (idx[:len(idx) // 2], idx[len(idx) // 2:])
+        # REVERSAL: learn tasks 1-2 on first halves, then the second half of task 2 with labels 2<->3 swapped
+        model = make_model(a.model, a.seed, overrides)
+        for t in TASKS[:2]:
+            feed(model, Xtr, ytr, halves[t][0])
+            model.end_task()
+        swap = np.array([0, 1, 3, 2, 4, 5, 6, 7, 8, 9])
+        m23 = np.isin(yev, [2, 3])
+        before_01 = acc_on(model, Xev, yev, [0, 1], cls4)
+        curve, need = [], None
+        ridx = halves[TASKS[1]][1]
+        b = model.batch_size
+        for s in range(0, len(ridx), b):
+            j = ridx[s:s + b]
+            model.learn(Xtr[j], swap[ytr[j]])
+            if (s // b) % max(1, 20 // b) == 0 or s + b >= len(ridx):
+                acc_rev = float((model.predict(Xev[m23], cls4) == swap[yev[m23]]).mean())
+                curve.append((s + len(j), acc_rev))
+                if need is None and acc_rev >= 0.8:
+                    need = s + len(j)
+        model.end_task()
+        res['REV_curve'] = curve
+        res['REV_final'] = float((model.predict(Xev[m23], cls4) == swap[yev[m23]]).mean())
+        res['REV_examples_per_class_to_80'] = None if need is None else need / 2
+        res['REV_other_drop'] = before_01 - acc_on(model, Xev, yev, [0, 1], cls4)
+        print(f"  REV final={res['REV_final']:.3f} ex/class to 80%={res['REV_examples_per_class_to_80']} "
+              f"other drop={res['REV_other_drop']:.4f}", flush=True)
+        # NOISE: first halves with 20% within-task flipped labels, second halves clean; vs fully clean run
+        out = {}
+        for noisy in (True, False):
+            model = make_model(a.model, a.seed, overrides)
+            rng = np.random.RandomState(a.seed + 300)
+            for t in TASKS[:2]:
+                i1, i2 = halves[t]
+                yl = ytr.copy()
+                if noisy:
+                    flip = i1[rng.rand(len(i1)) < 0.2]
+                    yl[flip] = np.where(yl[flip] == t[0], t[1], t[0])
+                feed(model, Xtr, yl, i1)
+                feed(model, Xtr, ytr, i2)
+                model.end_task()
+            out[noisy] = acc_on(model, Xev, yev, cls4, cls4)
+        res['NOISE_acc'], res['NOISE_clean_acc'] = out[True], out[False]
+        res['NOISE_gap'] = out[False] - out[True]
+        print(f"  NOISE acc={out[True]:.4f} clean={out[False]:.4f} gap={res['NOISE_gap']:.4f}", flush=True)
 
     res['wall_clock_s'] = time.time() - T0
     os.makedirs(a.out, exist_ok=True)

@@ -1,0 +1,8 @@
+[main stream]
+  task 0 (0, 1): n=11339 8.5s  acc_per_task=0.997
+  task 1 (2, 3): n=10885 10.2s  acc_per_task=0.991 0.976
+  task 2 (4, 5): n=10180 11.2s  acc_per_task=0.981 0.970 0.980
+  task 3 (6, 7): n=10986 13.4s  acc_per_task=0.977 0.959 0.970 0.977
+  task 4 (8, 9): n=10610 15.4s  acc_per_task=0.965 0.941 0.940 0.941 0.929
+  ACC=0.9435 FGT=0.03573493563584171
+[few-shot / novelty]
