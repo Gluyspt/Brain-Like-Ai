@@ -39,7 +39,8 @@ class SPARC:
                  # hippocampus + sleep (hip_M=0 disables)
                  hip_M=1000, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
-                 correct=False, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=False, clean_theta=0.9):
+                 correct=False, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=False, clean_theta=0.9,
+                 lab_tau=1000.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -71,6 +72,8 @@ class SPARC:
         self.correct, self.err_theta, self.reopen, self.ltd = correct, err_theta, reopen, ltd
         self.sleep_clean, self.clean_theta = sleep_clean, clean_theta
         self.n_conf_err = self.n_cleaned = 0
+        self.lab_tau = lab_tau                     # lability window of output neurons (samples)
+        self.L = np.zeros(self.C)                  # lability trace: recent labelled experience per class
         # bookkeeping
         self.n_recruit = self.n_seen = self.n_merged = self.n_consol = self.n_sleep = self.n_writes = 0
         self.full_at = -1
@@ -149,6 +152,9 @@ class SPARC:
             a = self.W[:self.used] @ x
         if c is not None:
             h = self._code(a[None])[0]
+            if self.lab_tau > 0:
+                self.L *= np.exp(-1.0 / self.lab_tau)
+                self.L[c] = min(1.0, self.L[c] + 1.0 / 20.0)   # ~20 recent labels -> fully labile
             if self.correct and self.nc[c] > 0:
                 self._confident_error(h, c)
             self.nc[c] += 1
@@ -176,11 +182,14 @@ class SPARC:
         if cp == c or q < self.err_theta:
             return
         M = q
+        lab = self.L[cp] if self.lab_tau > 0 else 1.0   # only a recently reactivated memory is labile
+        if lab < 1e-3:
+            return
         act = h > 0
-        g = min(1.0, self.ltd * M * 50.0 / (50.0 + self.nc[cp]))
+        g = lab * min(1.0, self.ltd * M * 50.0 / (50.0 + self.nc[cp]))
         self.A[cp, act] *= (1.0 - g * hn[act] / (hn[act].max() + 1e-8))
         self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))
-        self.nc[cp] = max(1.0, self.nc[cp] * (1.0 - self.reopen * M))
+        self.nc[cp] = max(1.0, self.nc[cp] * (1.0 - self.reopen * M * lab))
         self.n_conf_err += 1
 
     # ---------- hippocampus ----------
