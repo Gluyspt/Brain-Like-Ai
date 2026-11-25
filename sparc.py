@@ -40,7 +40,7 @@ class SPARC:
                  hip_M=1000, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=False, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=False, clean_theta=0.9,
-                 lab_tau=1000.0):
+                 lab_tau=1000.0, arbitrate=False, unc_tau=200.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -74,6 +74,8 @@ class SPARC:
         self.n_conf_err = self.n_cleaned = 0
         self.lab_tau = lab_tau                     # lability window of output neurons (samples)
         self.L = np.zeros(self.C)                  # lability trace: recent labelled experience per class
+        self.arbitrate, self.unc_tau = arbitrate, unc_tau
+        self.U = np.zeros(self.C)                  # unexpected uncertainty: recent confident errors per class
         # bookkeeping
         self.n_recruit = self.n_seen = self.n_merged = self.n_consol = self.n_sleep = self.n_writes = 0
         self.full_at = -1
@@ -155,6 +157,8 @@ class SPARC:
             if self.lab_tau > 0:
                 self.L *= np.exp(-1.0 / self.lab_tau)
                 self.L[c] = min(1.0, self.L[c] + 1.0 / 20.0)   # ~20 recent labels -> fully labile
+            if self.arbitrate:
+                self.U *= np.exp(-1.0 / self.unc_tau)
             if self.correct and self.nc[c] > 0:
                 self._confident_error(h, c)
             self.nc[c] += 1
@@ -182,6 +186,9 @@ class SPARC:
         if cp == c or q < self.err_theta:
             return
         M = q
+        if self.arbitrate:  # unexpected outcome for these classes -> trust the slow system less
+            for cc in (c, cp):
+                self.U[cc] = min(1.0, self.U[cc] + M / 10.0)
         lab = self.L[cp] if self.lab_tau > 0 else 1.0   # only a recently reactivated memory is labile
         if lab < 1e-3:
             return
@@ -336,6 +343,8 @@ class SPARC:
             return ps
         if self.mix == 'conf':
             wf, ws = pf.max(1, keepdims=True), ps.max(1, keepdims=True)
+            if self.arbitrate:  # arbitration by uncertainty (Daw et al. 2005)
+                ws = ws * (1.0 - self.U[allowed][ps.argmax(1)])[:, None]
             return (wf * pf + ws * ps) / (wf + ws)
         lam = float(self.mix)
         return (1 - lam) * pf + lam * ps
