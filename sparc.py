@@ -40,7 +40,7 @@ class SPARC:
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=3, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
-                 engram_tag=False, syn_meta=False, refine_gate=False,
+                 engram_tag=False, syn_meta=False, refine_gate=False, gate_glimpses=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -104,6 +104,7 @@ class SPARC:
         # move toward the input; look-alike units of other classes are not pulled (task-relevant gating
         # of IT plasticity, Sigala & Logothetis 2002). Unlabelled inputs refine all winners as before.
         self.refine_gate = refine_gate
+        self.gate_glimpses = gate_glimpses   # also gate unlabelled glimpses + trace (R3-3b: hurt; off)
         self.used = 0                        # units recruited so far (budget = N)
         self.s_mu, self.s_var = 0.2, 0.01    # running surprise statistics (neuromodulator baseline)
         # fast readout: per-class running mean of sparse codes (only row c changes)
@@ -301,7 +302,7 @@ class SPARC:
             # resonance -> refine top-k winners, rate from own usage
             k = min(self.k, u)
             win = np.argpartition(-a, k - 1)[:k]
-            cg = c if c is not None else (None if gate_y is None else int(np.asarray(gate_y).ravel()[0]))
+            cg = c if (c is not None or not self.gate_glimpses) else (None if gate_y is None else int(np.asarray(gate_y).ravel()[0]))
             if self.refine_gate and cg is not None:          # the object's identity is known for all its glimpses
                 Aw = self.A[:, win]
                 wl = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
