@@ -18,5 +18,10 @@ RAG looks up raw documents outside the model and pastes them into the prompt; th
 ## Expected effect
 Few-shot classes have their 5 shots in the hippocampus, so a test image can match "that 8 I saw" directly. Targets: MNIST FEW-5 (42.7 vs 70), and the relearning test (research/15).
 
+## Results (quick, val, seed 0)
+- Ungated (`epi` 0.5 / 1 / 2): FEW5 falls (MNIST 52.5 → 47.4 / 43.2 / 36.3). Old classes have ~100 traces each and a new class ≤ 5, so best-match recall favours big classes.
+- With reminders (LIFE test): best retention so far (Fashion REMIND FGT 12.4 → 7.4).
+- **CLS-gated** (`epi_gate` 50, recall only for unconsolidated classes): **FEW5 MNIST 82.0**, CIFAR 36.1, Fashion 76.4, but old-class drop 10–14 pts.
+
 ## Status
-Implemented (flag off; MNIST predictions unchanged). Screen queued: strength 0.5 / 1 / 2, quick, 3 datasets.
+Promising, not adopted. Next: let the hippocampus answer only when its recall clearly beats cortical familiarity (match margin), to keep the few-shot gain without the old-class cost.
