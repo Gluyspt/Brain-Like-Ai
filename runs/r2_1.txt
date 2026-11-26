@@ -1,0 +1,9 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_1_base > logs/r2_1_base_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_1_v2 --set v2=True > logs/r2_1_v2_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_1_v2cat --set v2=True v2_concat=True > logs/r2_1_v2cat_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_1_base > logs/r2_1_base_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_1_v2 --set v2=True > logs/r2_1_v2_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_1_v2cat --set v2=True v2_concat=True > logs/r2_1_v2cat_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_1_base > logs/r2_1_base_cifar10.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_1_v2 --set v2=True > logs/r2_1_v2_cifar10.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_1_v2cat --set v2=True v2_concat=True > logs/r2_1_v2cat_cifar10.log 2>&1

@@ -80,6 +80,20 @@ class V1:
                 self.D[w] = _unit(self.D[w] + eta * (p - self.D[w]))
                 self.n[w] += 1
 
+    def code_map(self, X):
+        """Per-position k-WTA code before pooling: (n, S, S, K) (input to V2)."""
+        n, u = len(X), self.used
+        out = np.zeros((n, self.S, self.S, self.K), np.float32)
+        if u == 0:
+            return out
+        k = min(self.k, u)
+        P, m = self._patches(X)
+        A = P @ self.D[:u].T
+        thr = np.partition(A, u - k, axis=-1)[..., u - k:u - k + 1]
+        A = np.where((A >= thr) & (A > 0) & m[..., None], A, 0)
+        out[..., :u] = A.reshape(n, self.S, self.S, u)
+        return out
+
     def encode(self, X, return_code_density=False, chunk=256):
         out = np.zeros((len(X), self.grid * self.grid, self.K), np.float32)
         dens = []

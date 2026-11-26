@@ -53,7 +53,7 @@ Every change must also follow the **brain-first rule** (docs/rules.md).
 - **S4** beats B4 by ≥ 8 pts ACC.
 - **S5** REVERSAL: new mapping adopted within ~100 examples per class, other classes drop ≤ 2 pts; NOISE: affected-class accuracy within 3 pts of the clean run.
 
-Stop rule: stop when every MUST passes on the full bench (then ablations and ARCHITECTURE.md), or after 12 iterations with an honest gap analysis (docs/loop.md).
+Stop rule: round 1 (12 iterations) is done. Round 2 (docs/loop.md) has up to 8 iterations, with added CIFAR-10 targets; it stops early when all targets pass on the full test bench.
 
 ## 5. Where everything else is
 | What | File |

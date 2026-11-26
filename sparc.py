@@ -13,6 +13,7 @@ Brain mapping (see docs/design-v1.md / ARCHITECTURE.md):
 """
 import numpy as np
 from v1 import V1
+from v2 import V2
 
 
 def _unit(x, axis=-1):
@@ -36,6 +37,7 @@ class SPARC:
                  v1='learned', v1_K=64, v1_k=3, v1_grid=4, v1_eta_min=0.002, v1_cp=12000,
                  hemi=False, hemi_grid=2, hemi_w=1.0,
                  rethink=0.1, conflict=0.5,
+                 v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -58,6 +60,8 @@ class SPARC:
         self.rethink, self.conflict = rethink, conflict
         self.n_rethink = 0
         self.kc_fan = kc_fan
+        self._v2cfg = dict(v2=v2, K=v2_K, k=v2_k, grid=v2_grid, concat=v2_concat)
+        self.v2_cp = v2_cp   # V2 critical period closes later than V1's (hierarchical maturation)
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
         # IT prototype layer (adaptive resonance)
         self.n = np.zeros(self.N)            # usage counts (metaplasticity)
@@ -111,7 +115,12 @@ class SPARC:
         self.v1b = V1(self.rng, K=c['v1_K'], k=c['v1_k'], grid=c['hemi_grid'], mode=c['v1'],
                       eta_min=c['v1_eta_min'], lowsf=True, img_side=side, img_ch=ch) \
             if (c['hemi'] and self.v1 is not None) else None
-        self.D = dim if self.v1 is None else self.v1.out_dim + (self.v1b.out_dim if self.v1b else 0)
+        c2 = self._v2cfg
+        self.v2 = V2(self.rng, self.v1, K=c2['K'], k=c2['k'], grid=c2['grid']) if (c2['v2'] and self.v1 is not None) else None
+        if self.v2 is not None:
+            self.D = self.v2.out_dim + (self.v1.out_dim if c2['concat'] else 0)
+        else:
+            self.D = dim if self.v1 is None else self.v1.out_dim + (self.v1b.out_dim if self.v1b else 0)
         self.W = np.zeros((self.N, self.D), np.float32)
         if self.kc_n:
             self.kc_in = self.rng.randint(0, self.D, size=(self.kc_n, self.kc_fan))
@@ -121,7 +130,11 @@ class SPARC:
         X = np.asarray(X, np.float32)
         if self.D is None:
             self._build(X.shape[1])
-        if self.v1 is not None:
+        if self.v2 is not None:
+            Xr = X
+            F2 = _unit(self.v2.encode(Xr))
+            X = np.concatenate([_unit(self.v1.encode(Xr)), F2], 1) if self._v2cfg['concat'] else F2
+        elif self.v1 is not None:
             Xr = X
             X = self.v1.encode(Xr)
             if self.v1b is not None:
@@ -177,6 +190,8 @@ class SPARC:
             self.v1.learn(np.asarray(X, np.float32)[0])
             if self.v1b is not None:
                 self.v1b.learn(np.asarray(X, np.float32)[0])
+        if self.v2 is not None and (self.v2_cp == 0 or self.n_seen < self.v2_cp):
+            self.v2.learn(np.asarray(X, np.float32)[0])
         x = self._pre(X)[0]
         self.n_seen += 1
         u = self.used
@@ -470,10 +485,12 @@ class SPARC:
         out = {'IT': float((H != 0).mean())}
         if self.v1 is not None:
             out['V1'] = self.v1.encode(np.asarray(X, np.float32), return_code_density=True)[1]
+        if getattr(self, 'v2', None) is not None:
+            out['V2'] = self.v2.encode(np.asarray(X, np.float32), return_code_density=True)[1]
         return out
 
     def stats(self):
-        p = self.W.size + self.A.size + self.R.size + (self.B.size + self.kc_in.size if self.kc_n else 0) + (self.v1.D.size if self.v1 is not None else 0)
+        p = self.W.size + self.A.size + self.R.size + (self.B.size + self.kc_in.size if self.kc_n else 0) + (self.v1.D.size if self.v1 is not None else 0) + (self.v2.D.size if getattr(self, 'v2', None) is not None else 0)
         hip = self.M * (2 * self.k + 1)
         return dict(params=int(p), stored_numbers=int(hip), raw_images_stored=0,
                     hippocampus_budget=f'{self.M} codes x (2*{self.k}+1) = {hip} numbers '
