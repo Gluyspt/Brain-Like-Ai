@@ -16,22 +16,31 @@ from sparc import SPARC, _unit, _softmax
 
 
 class SeqSPARC:
-    def __init__(self, seed=0, kz=20, nz=4000, eta=0.5, use_z=True, use_h=True, beta_pred=20.0, **stage1):
+    def __init__(self, seed=0, kz=20, nz=4000, eta=0.5, use_z=True, use_h=True, beta_pred=20.0, ctx='h', beta_q=20.0, meta=False, eta_min=0.02, **stage1):
         self.s = SPARC(seed=seed, **stage1)
         self.rng = np.random.RandomState(seed + 11)
         self.kz, self.nz, self.eta, self.use_z, self.use_h, self.beta_pred = kz, nz, eta, use_z, use_h, beta_pred
+        # ctx='h': conjunctions of raw IT codes; ctx='q': of category-level activity (class evidence),
+        # so different images of the same digit share their context (category cells feed sequence memory)
+        self.ctx, self.beta_q = ctx, beta_q
+        # metaplasticity of predictor synapses: rate 1/(1 + uses of the context unit), floor eta_min
+        self.meta, self.eta_min = meta, eta_min
         self.U = self.V = None
         self.reset_context()
 
     # ---- helpers ----
     def _init(self):
         N = self.s.N
-        self.U = self.rng.randn(self.nz, N).astype(np.float32)
-        self.V = self.rng.randn(self.nz, N).astype(np.float32)
+        D = 10 if self.ctx == 'q' else N
+        self.U = self.rng.randn(self.nz, D).astype(np.float32)
+        self.V = self.rng.randn(self.nz, D).astype(np.float32)
         self.Ph = np.zeros((N, N), np.float32)
         self.Pz = np.zeros((N, self.nz), np.float32)
+        self.nzu = np.zeros(self.nz)
+        self.nhu = np.zeros(N)
 
     def reset_context(self):
+        self._qc = self._qp = None
         self.prev = None          # previous IT code (sparse: idx, val)
         self.pred = None          # predicted next code (dense, N)
         self._s = 0.0
@@ -44,9 +53,20 @@ class SeqSPARC:
         val = val / (np.linalg.norm(val) + 1e-8)
         return idx, val
 
+    def _q(self, code):
+        """Category-level activity: softmax of the cue's match to each learned class (stage-1 readout)."""
+        seen = np.where(self.s.nc > 0)[0]
+        q = np.zeros(10, np.float32)
+        if len(seen):
+            h = np.zeros(self.s.N, np.float32); h[code[0]] = code[1]
+            q[seen] = _softmax(self.beta_q * (_unit(self.s.A[seen]) @ h))
+        return np.arange(10), q
+
     def _z(self, cur, prev):
         if prev is None:
             return None
+        if self.ctx == 'q':
+            cur, prev = self._qc, self._qp
         a = self.U[:, cur[0]] @ cur[1]
         b = self.V[:, prev[0]] @ prev[1]
         p = a * b
@@ -88,9 +108,13 @@ class SeqSPARC:
                 err = obs - self.pred
                 pc, pz = self._last_inputs
                 if self.use_h:
-                    self.Ph[:, pc[0]] += self.eta * np.outer(err, pc[1])
+                    eh = np.maximum(1.0 / (1.0 + self.nhu[pc[0]]), self.eta_min) if self.meta else self.eta
+                    self.Ph[:, pc[0]] += np.outer(err, pc[1]) * eh
+                    self.nhu[pc[0]] += 1
                 if self.use_z and pz is not None:
-                    self.Pz[:, pz[0]] += self.eta * np.outer(err, pz[1])
+                    ez = np.maximum(1.0 / (1.0 + self.nzu[pz[0]]), self.eta_min) if self.meta else self.eta
+                    self.Pz[:, pz[0]] += np.outer(err, pz[1]) * ez
+                    self.nzu[pz[0]] += 1
         else:
             self._s = 1.0
             if learn and self._last_inputs is not None and self.pred is not None:
@@ -100,7 +124,10 @@ class SeqSPARC:
                     self.Ph[:, pc[0]] += self.eta * np.outer(obs, pc[1])
                 if self.use_z and pz is not None:
                     self.Pz[:, pz[0]] += self.eta * np.outer(obs, pz[1])
-        z = self._z(cur, self.prev)
+        if self.ctx == 'q':
+            self._qp = getattr(self, '_qc', None)
+            self._qc = self._q(cur)
+        z = self._z(cur, self.prev) if (self.ctx != 'q' or self._qp is not None) else None
         self.pred = self._predict(cur, z)
         self._last_inputs = (cur, z)
         self.prev = cur
