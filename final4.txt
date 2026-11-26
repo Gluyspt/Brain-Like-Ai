@@ -1,0 +1,6 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data mnist --seed 0 --split test --only main,few,lbl,rev --tag final4 > logs/final4_mnist_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data mnist --seed 1 --split test --only main,few,lbl,rev --tag final4 > logs/final4_mnist_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data mnist --seed 2 --split test --only main,few,lbl,rev --tag final4 > logs/final4_mnist_2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data fashion --seed 0 --split test --only main,few,lbl,rev --tag final4 > logs/final4_fashion_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data fashion --seed 1 --split test --only main,few,lbl,rev --tag final4 > logs/final4_fashion_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data fashion --seed 2 --split test --only main,few,lbl,rev --tag final4 > logs/final4_fashion_2.log 2>&1
