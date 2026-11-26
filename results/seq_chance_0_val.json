@@ -13,9 +13,9 @@
  ],
  "online_end_acc": {
   "W1_count": 0.1,
-  "W2_plus3": 0.1,
-  "W3_perm": 0.166,
-  "W4_fib": 0.2
+  "W2_plus3": 0.098,
+  "W3_perm": 0.074,
+  "W4_fib": 0.058
  },
  "retention": {
   "W1_count": 0.10817094861660079,
@@ -35,9 +35,9 @@
   "W3_perm": 0.0875,
   "W4_fib": 0.125
  },
- "mean_online": 0.14150000000000001,
+ "mean_online": 0.0825,
  "mean_retention": 0.10507842791266704,
  "mean_violation": 0.5,
  "mean_completion": 0.1,
- "wall_clock_s": 0.09102010726928711
+ "wall_clock_s": 0.12102699279785156
 }

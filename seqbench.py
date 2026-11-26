@@ -126,6 +126,7 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--split', default='val', choices=['val', 'test'])
     ap.add_argument('--steps', type=int, default=3000)
+    ap.add_argument('--episode', type=int, default=30, help='items per training episode (event boundaries between)')
     ap.add_argument('--set', nargs='*', default=[])
     ap.add_argument('--tag', default='')
     ap.add_argument('--out', default='results')
@@ -140,11 +141,16 @@ def main():
     res = dict(model=a.model, seed=a.seed, split=a.split, steps=a.steps, overrides=ov, tag=a.tag, worlds=list(WORLDS))
     names = list(WORLDS)
     online = {}
-    # 1) learn the worlds one after another (online, single pass, one continuous sequence per world)
+    # 1) learn the worlds one after another (online, single pass). Each world is experienced as episodes of
+    #    `--episode` items with random starts, separated by event boundaries (reset_context), so every part of
+    #    the rule is visited (a single long sequence stays inside one cycle of the rule).
     for w in names:
-        seq, _ = gen(w, a.steps, rng)
-        hits, _ = run_seq(model, train_pool, seq, learn=True)
-        online[w] = float(hits[-500:].mean())
+        hits = []
+        for _ in range(a.steps // a.episode):
+            seq, _ = gen(w, a.episode, rng)
+            h, _ = run_seq(model, train_pool, seq, learn=True)
+            hits += list(h)
+        online[w] = float(np.mean(hits[-500:]))
         print(f'  learn {w}: last-500 next-item acc {online[w]:.3f}', flush=True)
     res['online_end_acc'] = online
     # 2) retention: short test sequences from each world on eval images, learning off; first 5 items = context
