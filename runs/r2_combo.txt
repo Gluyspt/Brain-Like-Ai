@@ -1,0 +1,6 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few --data mnist --seed 0 --tag r2_combo --set glimpses=3 trace_w=0.5 it_lvq=1.0 > logs/r2_combo_mnist_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few --data mnist --seed 1 --tag r2_combo --set glimpses=3 trace_w=0.5 it_lvq=1.0 > logs/r2_combo_mnist_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few --data mnist --seed 2 --tag r2_combo --set glimpses=3 trace_w=0.5 it_lvq=1.0 > logs/r2_combo_mnist_2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few --data fashion --seed 0 --tag r2_combo --set glimpses=3 trace_w=0.5 it_lvq=1.0 > logs/r2_combo_fashion_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few --data fashion --seed 1 --tag r2_combo --set glimpses=3 trace_w=0.5 it_lvq=1.0 > logs/r2_combo_fashion_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few --data fashion --seed 2 --tag r2_combo --set glimpses=3 trace_w=0.5 it_lvq=1.0 > logs/r2_combo_fashion_2.log 2>&1
