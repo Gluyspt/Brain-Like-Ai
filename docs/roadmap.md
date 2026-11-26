@@ -8,7 +8,7 @@ Every stage keeps the hard rules: local plasticity, online learning, no raw-inpu
 |---|---|---|---|---|
 | **1** | **Perception + memory**: continual, few-shot, self-correcting, novelty-aware; categories never truly lost | V1/V2/IT, hippocampus, sleep, neuromodulators | docs/benchmark.md (ACC, FGT, FEW, LBL5, NOVELTY, REVERSAL, NOISE, LIFE) | **in progress**: round 2 |
 | **2** | **Prediction over time** (world model): learns what follows what; surprise = prediction error | predictive coding; cerebellum-like forward models; dendritic context | sequence streams: next-input prediction, sequence completion, prediction-error novelty, continual learning of several sequence "worlds" | next |
-| **3** | **Structure and relations**: codes that transfer a learned relation to new items | hippocampal–entorhinal cognitive maps, grid-like codes for abstract spaces | transitive inference, same/different rules, structure transfer to new items | planned |
+| **3** | **Structure and relations**: codes that transfer a learned relation to new items | hippocampal–entorhinal cognitive maps, grid-like codes for abstract spaces; parietal number line | **first: number sense** (below); then transitive inference, same/different rules, structure transfer to new items | planned |
 | **4** | **Working memory + gating**: holds and updates information over steps | prefrontal persistent activity, basal-ganglia gating, dopamine | n-back, 1-2-AX, delayed match-to-sample | planned |
 | **5** | **Thinking as simulation**: imagines options before acting | hippocampal replay/preplay, model-based planning | mazes and shortcuts, planning with a learned model, reward learning (dopamine RPE) | planned |
 | **6** | **Grounded symbols and language**: words bound to sensory codes | multimodal association cortex; language areas | spoken digits ↔ images (cross-modal recall); **Molyneux test** (research/18): zero-shot cross-modal recognition, then how fast cross-modal binding is learned; simple grounded word learning, then character-level text | planned |
@@ -25,6 +25,13 @@ Every stage keeps the hard rules: local plasticity, online learning, no raw-inpu
 2. **Temporal predictor**: a single-layer, cerebellum-like map from the current IT code (plus a decaying context trace) to the next code, ĥ_{t+1} = P [h_t, c_t], learned with a local delta rule (research/08).
 3. **Prediction error as surprise**: replace 1 − max match with "unexpected given context", which links back to stage 1's novelty and correction.
 4. **Sleep replays sequences** (hippocampal sequence replay), not just single codes.
+
+## Stage 3 (first benchmark): number sense, "does it understand addition or just remember it?"
+User direction (2026-11-26): children first recognise "3" (stage 1), then count (stage 2), then add any two numbers, including sums never practised.
+1. **Ground symbols in quantity**: dot-array images (n dots, varied size and position) paired with digit images, so the digit's memory links to an amount (symbol grounding; research/20).
+2. **Number line from counting**: use the stage-2 counting world to learn an ordered magnitude code (neighbouring numbers get similar codes); test with magnitude comparison (which is larger?) on pairs never compared before, including the distance effect (far pairs easier than close ones).
+3. **Addition as movement on the line**: shown two digits (a, b), answer a + b. Train on some pairs; **test on held-out pairs** (e.g. every pair with a + b = 7 held out, or all pairs involving 4 + x). A memoriser fails held-out pairs; a structured code succeeds. Also counting-on behaviour: cost grows with the smaller addend.
+4. **Baselines**: a lookup table (memorises training pairs, chance on held-out), and an MLP on one-hot inputs (backprop; how far does it generalise?).
 
 ## Cross-cutting tracks
 - **Depth / credit assignment**: deeper local hierarchies and brain-plausible error signals (research/13; error-driven IT tuning was rejected in R2-2a). Needed for scale at every stage.
