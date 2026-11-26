@@ -35,6 +35,7 @@ class SPARC:
                  # V1
                  v1='learned', v1_K=64, v1_k=3, v1_grid=4, v1_eta_min=0.002, v1_cp=12000,
                  hemi=False, hemi_grid=2, hemi_w=1.0,
+                 rethink=0.0, conflict=0.3,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -52,6 +53,10 @@ class SPARC:
         self.v1_cp = v1_cp   # critical period: V1 plasticity closes after v1_cp images (0 = never closes)
         # second visual 'hemisphere': coarse, global (low spatial frequency) V1, joined at IT (callosal integration)
         self.hemi_w = hemi_w
+        # rethink loop: ACC-like conflict detection -> PFC-like top-down gain on discriminative IT units
+        # -> second look (one extra pass at most)
+        self.rethink, self.conflict = rethink, conflict
+        self.n_rethink = 0
         self.v1b = V1(self.rng, K=v1_K, k=v1_k, grid=hemi_grid, mode=v1, eta_min=v1_eta_min, lowsf=True) \
             if (hemi and self.v1 is not None) else None
         self.D = 784 if self.v1 is None else self.v1.out_dim + (self.v1b.out_dim if self.v1b else 0)
@@ -117,14 +122,18 @@ class SPARC:
         tgt = self.k / u
         return (self.ie_gamma * np.clip(1.0 - self.r[:u] / tgt, -1.0, 1.0)).astype(np.float32)
 
-    def _code(self, a):
-        """k-WTA on activations a (n, used) -> sparse code (n, N); winners chosen on a + excitability."""
+    def _code(self, a, top_down=None):
+        """k-WTA on activations a (n, used) -> sparse code (n, N); winners chosen on
+        a + intrinsic excitability (+ optional top-down attentional gain)."""
         n, u = a.shape
         H = np.zeros((n, self.N), np.float32)
         if u == 0:
             return H
         k = min(self.k, u)
-        idx = np.argpartition(-(a + self._bias(u)), k - 1, axis=1)[:, :k]
+        sel = a + self._bias(u)
+        if top_down is not None:
+            sel = sel + top_down
+        idx = np.argpartition(-sel, k - 1, axis=1)[:, :k]
         vals = np.take_along_axis(a, idx, 1)
         np.put_along_axis(H, idx, np.maximum(vals, 0), 1)
         return H
@@ -382,8 +391,26 @@ class SPARC:
 
     # ---------- inference ----------
     def class_probs(self, X, allowed):
-        H, _ = self.encode(X)
+        H, a = self.encode(X)
         allowed = np.asarray(allowed)
+        p = self._probs(H, X, allowed)
+        if self.rethink > 0 and len(allowed) > 1 and self.used:
+            # ACC: conflict = the runner-up is close to the winner
+            o = np.argsort(-p, 1)
+            c1, c2 = o[:, 0], o[:, 1]
+            r = np.where(p[np.arange(len(p)), c2] > self.conflict * p[np.arange(len(p)), c1])[0]
+            if len(r):
+                self.n_rethink += len(r)
+                # PFC holds the two candidates; top-down gain onto IT units whose (Hebbian) feedback
+                # synapses differ most between them, i.e. the features that tell them apart
+                An = _unit(self.A[allowed])[:, :self.used]
+                d = np.abs(An[c1[r]] - An[c2[r]])
+                d = d / (d.max(1, keepdims=True) + 1e-8)
+                H2 = self._code(a[r], top_down=self.rethink * d)        # second look
+                p[r] = self._probs(H2, X[r], allowed)
+        return p
+
+    def _probs(self, H, X, allowed):
         Hn = _unit(H)
         pf = _softmax(self.beta * (Hn @ _unit(self.A[allowed]).T))
         pk = None
@@ -440,6 +467,6 @@ class SPARC:
     def diagnostics(self):
         return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen),
                     n_merged=int(self.n_merged), n_consol=int(self.n_consol), full_at=int(self.full_at),
-                    n_sleep=int(self.n_sleep), n_match_track=int(self.n_mt), n_conf_err=int(self.n_conf_err), n_cleaned=int(self.n_cleaned), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
+                    n_sleep=int(self.n_sleep), n_rethink=int(self.n_rethink), n_match_track=int(self.n_mt), n_conf_err=int(self.n_conf_err), n_cleaned=int(self.n_cleaned), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
                     hip_per_class=[int(v) for v in np.bincount(self.h_lab[:self.h_n], minlength=self.C)],
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])
