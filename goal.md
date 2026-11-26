@@ -94,6 +94,7 @@ Stop rule: round 1 (12 iterations) is done. Round 2 (docs/loop.md) has up to 8 i
 | Roadmap: stages 1–7 toward understanding and reasoning | `docs/roadmap.md` |
 | Agent team and briefs | `docs/agents.md` (+ `.claude/agents/`) |
 | Environment and data sources | `docs/environment.md` |
+| Engineering to-do: speed, Rust plan, running on your own PC | `docs/todo.md` |
 | Audit of rules and numbers | `docs/audit.md` |
 | Research: brain systems, prior work, warnings, backlog | `research/` (start at `research/README.md`) |
 | Code | `sparc.py`, `v1.py` (model); `bench.py`, `data.py`, `baselines.py` (world); `tools/` (reports) |

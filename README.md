@@ -17,4 +17,4 @@ Code: `sparc.py` and `v1.py` (model); `bench.py`, `data.py` and `baselines.py` (
 python bench.py --model sparc --data mnist --seed 0 --split val --quick
 python tools/summarize.py results/sparc_*_val.json
 ```
-Needs numpy only. Data downloads are described in `docs/environment.md`.
+Needs numpy (numba optional, faster). To run on your own PC, see `docs/todo.md`.

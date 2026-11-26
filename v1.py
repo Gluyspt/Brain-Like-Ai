@@ -3,6 +3,37 @@ k-winners-take-all per position, fixed spatial sum-pooling. Local learning only.
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
+try:                                   # optional JIT for the per-patch learning loop (docs/todo.md)
+    from numba import njit
+except ImportError:                    # plain Python fallback: identical rule, slower
+    njit = None
+
+
+def _learn_patches(D, n, used, Ps, rho1, eta_min, K):
+    """Competitive-Hebbian dictionary update for a few patches in sequence (same rule as before)."""
+    for t in range(Ps.shape[0]):
+        p = Ps[t]
+        best = -1.0
+        w = 0
+        if used > 0:
+            a = D[:used] @ p
+            w = int(np.argmax(a))
+            best = a[w]
+        if best < rho1 and used < K:
+            D[used] = p
+            n[used] = 1
+            used += 1
+        else:
+            eta = max(1.0 / (1.0 + n[w]), eta_min)
+            d = D[w] + eta * (p - D[w])
+            D[w] = d / (np.sqrt((d * d).sum()) + 1e-8)
+            n[w] += 1
+    return used
+
+
+if njit is not None:
+    _learn_patches = njit(cache=True)(_learn_patches)
+
 
 def _unit(x, axis=-1):
     return x / (np.linalg.norm(x, axis=axis, keepdims=True) + 1e-8)
@@ -43,6 +74,7 @@ class V1:
         # pooling region of each position
         r = np.minimum(np.arange(self.S) * grid // self.S, grid - 1)
         self.region = (r[:, None] * grid + r[None, :]).ravel()
+        self.Pool = (self.region[None, :] == np.arange(grid * grid)[:, None]).astype(np.float32)  # (regions, positions)
         self.out_dim = grid * grid * K
 
     def _patches(self, X):
@@ -56,29 +88,16 @@ class V1:
         nrm = np.linalg.norm(P, axis=-1, keepdims=True)
         return P / (nrm + 1e-8), (nrm[..., 0] > self.contrast)
 
-    def learn(self, x):
+    def learn(self, x, pm=None):
         if self.mode == 'gabor':
             return
-        P, m = self._patches(x[None])
+        P, m = self._patches(x[None]) if pm is None else pm
         cand = np.where(m[0])[0]
         if len(cand) == 0:
             return
-        for i in self.rng.choice(cand, min(self.n_patch, len(cand)), replace=False):
-            p = P[0, i]
-            if self.used:
-                a = self.D[:self.used] @ p
-                w = int(a.argmax())
-                best = a[w]
-            else:
-                best = -1
-            if best < self.rho1 and self.used < self.K:
-                self.D[self.used] = p
-                self.n[self.used] = 1
-                self.used += 1
-            else:
-                eta = max(1.0 / (1.0 + self.n[w]), self.eta_min)
-                self.D[w] = _unit(self.D[w] + eta * (p - self.D[w]))
-                self.n[w] += 1
+        sel = self.rng.choice(cand, min(self.n_patch, len(cand)), replace=False)
+        Ps = np.ascontiguousarray(P[0, sel], dtype=np.float32)
+        self.used = int(_learn_patches(self.D, self.n, self.used, Ps, np.float32(self.rho1), self.eta_min, self.K))
 
     def code_map(self, X):
         """Per-position k-WTA code before pooling: (n, S, S, K) (input to V2)."""
@@ -94,7 +113,7 @@ class V1:
         out[..., :u] = A.reshape(n, self.S, self.S, u)
         return out
 
-    def encode(self, X, return_code_density=False, chunk=256):
+    def encode(self, X, return_code_density=False, chunk=256, pm=None):
         out = np.zeros((len(X), self.grid * self.grid, self.K), np.float32)
         dens = []
         u = self.used
@@ -102,15 +121,14 @@ class V1:
             return out.reshape(len(X), -1)
         k = min(self.k, u)
         for s in range(0, len(X), chunk):
-            P, m = self._patches(X[s:s + chunk])
+            P, m = self._patches(X[s:s + chunk]) if pm is None else pm
             A = P @ self.D[:u].T                                  # (b, pos, u)
             thr = np.partition(A, u - k, axis=-1)[..., u - k:u - k + 1]
             A = np.where((A >= thr) & (A > 0) & m[..., None], A, 0)   # k-WTA per position
             if return_code_density:
                 dens.append((A != 0).sum(-1).mean() / self.K)
             # sum-pool over fixed regions
-            for r in range(self.grid * self.grid):
-                out[s:s + chunk, r, :u] = A[:, self.region == r].sum(1)
+            out[s:s + chunk, :, :u] = np.matmul(self.Pool, A)          # sum-pool over fixed regions
         out = out.reshape(len(X), -1)
         if return_code_density:
             return out, float(np.mean(dens))

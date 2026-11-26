@@ -161,7 +161,7 @@ class SPARC:
             self.kc_in = self.rng.randint(0, self.D, size=(self.kc_n, self.kc_fan))
 
     # ---------- encoding ----------
-    def _pre(self, X):
+    def _pre(self, X, pm=None):
         X = np.asarray(X, np.float32)
         if self.D is None:
             self._build(X.shape[1])
@@ -171,7 +171,7 @@ class SPARC:
             X = np.concatenate([_unit(self.v1.encode(Xr)), F2], 1) if self._v2cfg['concat'] else F2
         elif self.v1 is not None:
             Xr = X
-            X = self.v1.encode(Xr)
+            X = self.v1.encode(Xr, pm=pm)
             if self.v1b is not None:
                 X = np.concatenate([_unit(X), self.hemi_w * _unit(self.v1b.encode(Xr))], 1)
         if self.center:  # subtractive + divisive normalisation
@@ -242,13 +242,16 @@ class SPARC:
         self._trace = None
 
     def _learn_view(self, X, y=None, first=True, gate_y=None):
+        pm = None
+        if self.v1 is not None and self.v2 is None and self.v1b is None:
+            pm = self.v1._patches(np.asarray(X, np.float32))   # patches don't depend on weights: compute once
         if self.v1 is not None and (self.v1_cp == 0 or self.n_seen < self.v1_cp):
-            self.v1.learn(np.asarray(X, np.float32)[0])
+            self.v1.learn(np.asarray(X, np.float32)[0], pm=pm)
             if self.v1b is not None:
                 self.v1b.learn(np.asarray(X, np.float32)[0])
         if self.v2 is not None and (self.v2_cp == 0 or self.n_seen < self.v2_cp):
             self.v2.learn(np.asarray(X, np.float32)[0])
-        x = self._pre(X)[0]
+        x = self._pre(X, pm=pm)[0]
         if first:
             self.n_seen += 1
         u = self.used
