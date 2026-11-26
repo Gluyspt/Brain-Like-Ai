@@ -38,29 +38,8 @@ Scope: the learning machinery, tested at small scale (image streams). Language s
 - **P9 Sleep:** an offline replay phase that measurably helps.
 - **P10 Self-correcting:** a wrong association can be unlearned when contrary evidence arrives (reversal learning), without damaging unrelated classes. Brain basis: confident-error prediction-error signals (dopamine/noradrenaline) boost plasticity where the mistake happened; recalled memories become labile again (reconsolidation); old links are often outcompeted rather than erased (extinction).
 
-## 4. What we already learnt (research scan, Nov 2026)
-
-| Idea | What it shows | Use it for |
-|---|---|---|
-| **Fruit-fly mushroom body** (Shen, Dasgupta & Navlakha 2021; Neural Computation 2023) | Layer 1 encodes inputs as sparse, high-dimensional codes so different inputs use non-overlapping neurons; layer 2 changes only the synapses between active neurons and the correct output neuron, everything else frozen. Cuts catastrophic forgetting. Zou et al. 2025 turn it into a plug-in "Fly Model". | Sparse expansion + associative readout that never touches other classes |
-| **Adaptive Resonance Theory** (Grossberg; ART survey 2019; Masuyama et al. 2025, self-adjusting vigilance) | Solves stability vs plasticity: refine an existing category only when input matches it well enough (resonance); otherwise recruit a new unit. Top-down match = a prediction check. Recent work makes vigilance self-adjusting and tests class-incremental learning. | Vigilance-based unit recruitment; surprise = 1 − match |
-| **SoftHebb** (Journé et al., ICLR 2023) | Multilayer Hebbian learning in soft winner-take-all nets with **no feedback, target or error signal**; 99.4 % MNIST, 80.3 % CIFAR-10 (up to 5 hidden layers + linear classifier), unsupervised part in a single epoch. | Feedback-free, fast feature learning; proof that local rules can reach useful accuracy |
-| **Sleep Replay Consolidation** (Tadros et al., Nature Comms 2022) | An offline "sleep" phase with local unsupervised Hebbian plasticity and noisy input recovered old tasks that were otherwise forgotten. | Sleep phase design |
-| **HiCL** (AAAI 2026) | Hippocampus-inspired continual learner: grid-cell-like encoder, dentate-gyrus top-k sparsity, CA3 autoassociative memory, prototype-gated experts, prioritized replay. Still trained with gradients (EWC + replay). | DG top-k pattern separation, prototype gating, prioritized replay |
-| **Nested Learning / Hope** (Google Research, Nov 2025) | Frames a model as nested optimisation problems updating at different frequencies ("continuum memory system"); Hope builds on Titans, whose long-term memory prioritises surprising inputs. Backprop-based. | Multi-timescale plasticity; surprise-gated memory writes |
-| **Dragon Hatchling, BDH** (Pathway, Sep 2025) | LLM built from locally interacting neurons; working memory during inference relies on Hebbian synaptic plasticity; authors report GPT-2-level results at 10M–1B parameters. | Evidence that Hebbian fast weights can work at language scale (roadmap) |
-| **Hebbian learning with global direction** (Jan 2026) | Oja's rule + competitive learning, steered by a neuromodulator-like global signal. | Three-factor rule: local Hebbian term × global scalar |
-
-**Research scan 2 (2026-11-26, user request: "the brain has many parts that boost each other")**
-
-| Finding | Evidence | Use in SPARC |
-|---|---|---|
-| "Left-brained vs right-brained people" is a myth; lateralization is local to networks (left: language/default mode, right: attention) | Nielsen et al. 2013, PLOS ONE, 1,011 resting-state scans (https://pubmed.ncbi.nlm.nih.gov/23967180/) | do not model whole-brain dominance |
-| Visual hemispheres differ: right = global shape / low spatial frequency, left = local detail / high frequency; lesions show the matching deficits | Robertson & Ivry 2000 (https://ivrylab.berkeley.edu/files/organized_pubs_pdfs/2000_robertson_ivrycurrent_dir.pdf); Sergent 1982; review (https://ane.pl/index.php/ane/article/download/1151/1151) | **It 10**: two V1 "hemispheres" (fine local vs coarse global), combined at IT (callosal integration). Targets look-alike classes that differ in global shape (8 vs 3, pullover vs coat) |
-| Prefrontal cortex keeps goal patterns active and sends top-down bias signals that favour task-relevant features in visual cortex | Miller & Cohen 2001 (https://pubmed.ncbi.nlm.nih.gov/11283309/); Gazzaley et al. 2007 | **It 11 candidate**: top-down bias on IT competition from the currently confusable classes (SPARC is feed-forward today) |
-| Pulvinar (thalamus) regulates which cortical areas communicate, by attention (alpha synchrony) | Saalmann et al. 2012, Science (https://pmc.ncbi.nlm.nih.gov/articles/PMC3714098) | already partly: arbitration between fast and slow readouts |
-| Basal ganglia gate what enters / leaves prefrontal working memory; gating learned by dopamine | PBWM, Hazy, Frank & O'Reilly 2006 (https://pubmed.ncbi.nlm.nih.gov/16343792/) | roadmap §11.3: learned (reward) gating of hippocampal writes |
-| Cortex / basal ganglia / cerebellum specialise in unsupervised / reinforcement / supervised learning (contested: they overlap) | Doya 1999 (https://web.math.princeton.edu/~sswang/developmental-diaschisis-references/doya00_neural-networks.pdf); consensus paper 2016 (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5243918/) | SPARC has the cortical and supervised parts; reinforcement missing (§11.3) |
+## 4. What we already learnt (research)
+The research lives in **`research/`**: one file per brain system, each giving what the brain does, the evidence, how it helps SPARC, how it might work, the test and its status. Start at `research/README.md`. The next experiments, ranked by the gaps they target, are in `research/10-experiment-backlog.md`. Scan 1 (Nov 2026: fly, ART, SoftHebb, sleep replay, HiCL, Nested Learning, BDH) is in files 01–03 and 09. Scan 2 (2026-11-26: hemispheres, PFC, pulvinar, basal ganglia, cerebellum) is in files 04–08.
 
 **Takeaways that drive the design**
 1. Forgetting is mostly **interference**. Sparse, high-dimensional codes plus updating only active synapses removes most of it (fly).
