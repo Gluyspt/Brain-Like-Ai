@@ -1,0 +1,6 @@
+OMP_NUM_THREADS=1 python seqbench.py --model sparc_ctx --split test --seed 0 --steps 3000 --tag s2f --set nz=2000 eta_min=0.02 min_age=200 > logs/s2f_0.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model ngram2 --split test --seed 0 > logs/s2f_ngram2_0.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model sparc_ctx --split test --seed 1 --steps 3000 --tag s2f --set nz=2000 eta_min=0.02 min_age=200 > logs/s2f_1.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model ngram2 --split test --seed 1 > logs/s2f_ngram2_1.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model sparc_ctx --split test --seed 2 --steps 3000 --tag s2f --set nz=2000 eta_min=0.02 min_age=200 > logs/s2f_2.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model ngram2 --split test --seed 2 > logs/s2f_ngram2_2.log 2>&1

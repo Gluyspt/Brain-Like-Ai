@@ -1,0 +1,53 @@
+{
+ "model": "sparc_ctx",
+ "seed": 0,
+ "split": "val",
+ "steps": 3000,
+ "overrides": {
+  "nz": 2000,
+  "min_age": 200,
+  "eta_min": 0.02,
+  "lam": 0.3
+ },
+ "tag": "s2_7_lam_0_3",
+ "worlds": [
+  "W1_count",
+  "W2_plus3",
+  "W3_perm",
+  "W4_fib"
+ ],
+ "online_end_acc": {
+  "W1_count": 0.918,
+  "W2_plus3": 0.938,
+  "W3_perm": 0.924,
+  "W4_fib": 0.728
+ },
+ "retention": {
+  "W1_count": 0.9093616757638496,
+  "W2_plus3": 0.8726469979296064,
+  "W3_perm": 0.8219516701833636,
+  "W4_fib": 0.6647475061170713
+ },
+ "violation_auroc": {
+  "W1_count": 0.9810851169736187,
+  "W2_plus3": 0.9716050849471308,
+  "W3_perm": 0.9548351694736398,
+  "W4_fib": 0.8369767775229358
+ },
+ "completion": {
+  "W1_count": 0.1375,
+  "W1_count_from5": 0.95625,
+  "W2_plus3": 0.26875,
+  "W2_plus3_from5": 0.8,
+  "W3_perm": 0.1625,
+  "W3_perm_from5": 0.75,
+  "W4_fib": 0.2375,
+  "W4_fib_from5": 0.375
+ },
+ "mean_online": 0.877,
+ "mean_retention": 0.8171769624984726,
+ "mean_violation": 0.9361255372293312,
+ "mean_completion": 0.20156249999999998,
+ "mean_completion5": 0.7203125,
+ "wall_clock_s": 66.53969764709473
+}
