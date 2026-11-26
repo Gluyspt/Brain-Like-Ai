@@ -28,6 +28,7 @@ Each file covers one brain system or theme, with the same sections:
 | [13-credit-assignment.md](13-credit-assignment.md) | learning from mistakes deeper in the network without backprop | R2-2 in test |
 | [14-eye-movements-and-temporal-continuity.md](14-eye-movements-and-temporal-continuity.md) | saccades, the trace rule, invariance from temporal continuity | R2-3 in test |
 | [15-adaptive-forgetting-and-savings.md](15-adaptive-forgetting-and-savings.md) | what to forget, reminders, savings (fast relearning), engrams | REMIND/SAVINGS tests added |
+| [16-episodic-recall.md](16-episodic-recall.md) | hippocampal recall at answer time (vs RAG) | R2-5 in test |
 | [12-prior-attempts-and-warnings.md](12-prior-attempts-and-warnings.md) | who tried this before (ART, Leabra, Spaun, HTM, Human Brain Project, bio-plausible backprop) and the warnings | read before claiming results |
 
 ## Rules for these notes

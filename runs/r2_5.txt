@@ -1,0 +1,9 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_5_e0.5 --set epi=0.5 > logs/r2_5_e0.5_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_5_e1.0 --set epi=1.0 > logs/r2_5_e1.0_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_5_e2.0 --set epi=2.0 > logs/r2_5_e2.0_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_5_e0.5 --set epi=0.5 > logs/r2_5_e0.5_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_5_e1.0 --set epi=1.0 > logs/r2_5_e1.0_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_5_e2.0 --set epi=2.0 > logs/r2_5_e2.0_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_5_e0.5 --set epi=0.5 > logs/r2_5_e0.5_cifar10.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_5_e1.0 --set epi=1.0 > logs/r2_5_e1.0_cifar10.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_5_e2.0 --set epi=2.0 > logs/r2_5_e2.0_cifar10.log 2>&1

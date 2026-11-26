@@ -39,6 +39,7 @@ class SPARC:
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
+                 epi=0.0, epi_beta=20.0,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -72,6 +73,9 @@ class SPARC:
         # retrieval-triggered reconsolidation: a reminder of class c makes c's own memory labile,
         # even when the competing (wrongly predicted) memory is not (research/15)
         self.retrieval_reopen = retrieval_reopen
+        # episodic recall at inference: the IT code cues the stored hippocampal traces (CA3 pattern
+        # completion); the best-matching episode of each class gives a third vote (research/16)
+        self.epi, self.epi_beta = epi, epi_beta
         self._trace = None
         self.n_lvq = 0
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
@@ -509,7 +513,32 @@ class SPARC:
                 p[r] = self._probs(H2, X[r], allowed)
         return p
 
+    def _episodic(self, H, allowed, chunk=512):
+        """Per class: cosine of the cue to its best-matching stored trace -> softmax (n, len(allowed))."""
+        n = self.h_n
+        Hs = np.zeros((self.N, n), np.float32)                     # stored codes, column per trace
+        val = self.h_val[:n] / (np.linalg.norm(self.h_val[:n], axis=1, keepdims=True) + 1e-8)
+        np.add.at(Hs, (self.h_idx[:n].ravel(), np.repeat(np.arange(n), self.k)), val.ravel())
+        lab = self.h_lab[:n]
+        Hn = _unit(H)
+        out = np.full((len(H), len(allowed)), -1.0, np.float32)
+        for s0 in range(0, len(H), chunk):
+            S = Hn[s0:s0 + chunk] @ Hs                              # (b, n) cue-trace similarity
+            for j, c in enumerate(allowed):
+                m = lab == c
+                if m.any():
+                    out[s0:s0 + chunk, j] = S[:, m].max(1)
+        return _softmax(self.epi_beta * out)
+
     def _probs(self, H, X, allowed):
+        p = self._probs_base(H, X, allowed)
+        if self.epi > 0 and self.h_n > 0:
+            pe = self._episodic(H, allowed)
+            we = self.epi * pe.max(1, keepdims=True)
+            p = (p + we * pe) / (1.0 + we)
+        return p
+
+    def _probs_base(self, H, X, allowed):
         Hn = _unit(H)
         pf = _softmax(self.beta * (Hn @ _unit(self.A[allowed]).T))
         pk = None
