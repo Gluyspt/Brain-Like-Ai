@@ -1,0 +1,15 @@
+{
+ "model": "mlp_thermo",
+ "seed": 1,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "GROUND": 1.0,
+ "ORDER": 1.0,
+ "ORDER_close": 1.0,
+ "ORDER_far": 1.0,
+ "ADD_train": 1.0,
+ "ADD_heldout": 0.08333333333333333,
+ "n_heldout": 12,
+ "wall_clock_s": 0.04334068298339844
+}

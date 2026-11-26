@@ -1,5 +1,7 @@
 # SPARC — Sparse, Predictive, Adaptive-Resonance network with Consolidation
 
+(Sections 1–5: stage 1, perception + memory. Section 6: stage 2, prediction over time. Section 7: stage 3, number sense.)
+
 A continual learner whose **learning** is built from brain mechanisms only: local three-factor plasticity, online single-pass learning, sparse codes, novelty-gated recruitment, a hippocampal store, sleep replay, and error-driven self-correction. No backprop, no autograd, no raw-image replay. Code: `sparc.py` (+ `v1.py`), benchmark: `bench.py`, history: `goal.md` docs/iteration-log.md.
 
 Design rule (user directive, goal.md §3): **every mechanism must be something a brain does**; a change that only raised a score was rejected, and the cost of each brain-first choice is logged.
@@ -137,6 +139,27 @@ Version history on the test split (same protocol), MNIST / Fashion ACC and FGT: 
 | B5 GDumb | 10.7 (chance: training likely diverged; not trusted) | – | 0.0 | – |
 
 SPARC still beats every continual baseline on natural images, but it is 11.6 pts behind joint training, and the novelty signal collapses to near chance. A single local feature layer is not enough for natural images (research/12, warning W1).
+
+## 6. Stage 2: prediction over time (`sparc_seq.py`, `seqbench.py`)
+Stage-1 SPARC is the perception. On top of it, a sparse **conjunction** of the current and previous category activity (dendritic coincidence detection; fixed random mixing + k-WTA) feeds predictors of the next category. These are learned with a local delta rule, with metaplastic rates. **Context inference** (latent causes: Gershman, Blei & Niv 2010; COIN, Heald et al. 2021; research/19) keeps up to 8 context slots. The slot that has recently predicted best is active and the only one that learns; persistent surprise in an established slot recruits a new one. Surprise = 1 − p(observed category).
+
+| test, 3 seeds (docs/benchmark-stage2.md) | online | retention | violation AUROC | completion from 5 items |
+|---|---|---|---|---|
+| **SPARC + context inference** | 0.893 | **0.820** | **0.928** | **0.725** |
+| second-order n-gram on true labels (idealised, not brain-like) | 0.910 | 0.846 | 0.975 | 0.738 |
+| target | ≥ 0.90 | ≥ 0.60 | ≥ 0.85 | ≥ 0.70 |
+
+Near-pass: 3 of 4 targets. SPARC is within ~3 pts of an idealised counting learner while learning from raw images, online, with local rules and no stored sequences.
+
+## 7. Stage 3 (first step): number sense (`sparc_num.py`, `numbench.py`)
+Dehaene's triple code (research/20): the stage-1 visual digit form; an innate approximate number system (center-surround dot detectors → local competition → summation → log-tuned numerosity units with Weber noise); Hebbian grounding of digit symbols in numerosity codes; memorised facts; and **counting-on**, which uses successor knowledge learned from counting sequences and two working-memory registers. The routine itself is built in; learning it belongs to stages 4–5.
+
+| val, 3 seeds | GROUND (dots → digit) | ORDER (never trained) | ADD held-out (exact) |
+|---|---|---|---|
+| lookup / MLP one-hot / MLP thermometer (backprop) | oracle | 0.53 / 0.53 / 1.00 | 0.08 / 0.00 / 0.08 |
+| **NumSPARC (counting-on, stage 1 on 10k images)** | 0.76 | **0.95** (distance effect on 2 of 3 seeds) | **0.78** (0.92 / 0.83 / 0.58) |
+
+It adds pairs it never practised, where memorising models are at chance; the remaining errors are digit recognition and the approximate dot counter.
 
 ## 4. Limits and honest gaps
 

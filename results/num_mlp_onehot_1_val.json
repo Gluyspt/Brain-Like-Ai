@@ -1,0 +1,15 @@
+{
+ "model": "mlp_onehot",
+ "seed": 1,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "GROUND": 1.0,
+ "ORDER": 0.4444444444444444,
+ "ORDER_close": 0.36666666666666664,
+ "ORDER_far": 0.5,
+ "ADD_train": 1.0,
+ "ADD_heldout": 0.0,
+ "n_heldout": 12,
+ "wall_clock_s": 0.043196678161621094
+}

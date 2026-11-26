@@ -1,0 +1,16 @@
+{
+ "model": "lookup",
+ "seed": 0,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "GROUND": 1.0,
+ "ORDER": 0.5277777777777778,
+ "ORDER_close": 0.4,
+ "ORDER_far": 0.6190476190476191,
+ "ADD_train": 1.0,
+ "ADD_heldout": 0.08333333333333333,
+ "ADD_heldout_pm1": 0.25,
+ "n_heldout": 12,
+ "wall_clock_s": 0.0011630058288574219
+}

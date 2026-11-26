@@ -1,6 +1,6 @@
 # goal.md — Toward a brain-like model that understands, thinks and reasons
 
-> Status (2026-11-26): **Stage 1** rounds 1–3 done: SPARC (test, 3 seeds) MNIST 94.7 / FGT 0.7, Fashion 81.5 / FGT 7.6; all SHOULDs pass; open MUSTs: MNIST few-shot (43.6 vs 70), few-shot old-class drop (2.2 / 2.7 vs 2); relearning after forgetting not solved. **Stage 2** (prediction over time) in progress: with context inference SPARC ≈ an idealised counting learner (val: retention 0.814 vs 0.826). Details: ARCHITECTURE.md, docs/iteration-log.md.
+> Status (2026-11-26): **Stage 1** rounds 1–3 done (test: MNIST 94.7 / FGT 0.7, Fashion 81.5 / FGT 7.6; open MUSTs: MNIST few-shot, few-shot old-class drop; relearning unsolved). **Stage 2** near-pass (test: retention 0.820, violation 0.928, completion5 0.725; online 0.893 vs 0.90). **Stage 3** started: number sense, adds unseen pairs (val 0.78) where memorising baselines are at chance. Details: ARCHITECTURE.md, docs/iteration-log.md.
 
 ## 0. Ultimate goal (user, 2026-11-26)
 A model that actually **understands**, can **think**, and does real **reasoning**, built from brain mechanisms (brain-first rule, docs/rules.md) and learning the way a brain does.
