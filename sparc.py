@@ -39,7 +39,7 @@ class SPARC:
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
-                 epi=0.0, epi_beta=20.0,
+                 epi=0.0, epi_beta=20.0, epi_gate=0.0,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -76,6 +76,7 @@ class SPARC:
         # episodic recall at inference: the IT code cues the stored hippocampal traces (CA3 pattern
         # completion); the best-matching episode of each class gives a third vote (research/16)
         self.epi, self.epi_beta = epi, epi_beta
+        self.epi_gate = epi_gate   # >0: recall only for classes with < epi_gate traces (not yet consolidated)
         self._trace = None
         self.n_lvq = 0
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
@@ -526,6 +527,8 @@ class SPARC:
             S = Hn[s0:s0 + chunk] @ Hs                              # (b, n) cue-trace similarity
             for j, c in enumerate(allowed):
                 m = lab == c
+                if self.epi_gate > 0 and m.sum() >= self.epi_gate:
+                    continue                                        # consolidated: cortex answers
                 if m.any():
                     out[s0:s0 + chunk, j] = S[:, m].max(1)
         return _softmax(self.epi_beta * out)
