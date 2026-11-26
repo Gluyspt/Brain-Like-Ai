@@ -249,6 +249,18 @@ class SPARC:
                 pred = seen[np.argmax(_unit(self.A[seen]) @ h0)]
                 novel = pred != c
             self.n_mt += int(novel)
+        lvq = None
+        if self.it_lvq > 0 and c is not None and u and self.nc[c] > 0:
+            seen = np.where(self.nc > 0)[0]
+            pf = _softmax(self.beta * (_unit(self.A[seen]) @ _unit(self._code(a[None]))[0]))
+            j = int(pf.argmax())
+            if seen[j] != c:                               # mistake -> signed error modulator M = confidence
+                k = min(self.k, u)
+                win0 = np.argpartition(-a, k - 1)[:k]
+                Aw = self.A[:, win0]
+                lab = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
+                bad = win0[(lab >= 0) & (lab != c)]
+                lvq = (bad, float(pf[j]), a[bad].copy())
         if self._trace is not None:
             novel = False      # later glimpse of the same object: continuity suppresses novelty
         if novel and self.used < self.N:
@@ -266,23 +278,20 @@ class SPARC:
             win = np.argpartition(-a, k - 1)[:k]
             eta = 1.0 / (1.0 + self.n[win])
             g = (eta * np.maximum(a[win], 0))[:, None]
-            if self.it_lvq > 0 and c is not None and self.nc[c] > 0:
-                seen = np.where(self.nc > 0)[0]
-                h0 = _unit(self._code(a[None]))[0]
-                pf = _softmax(self.beta * (_unit(self.A[seen]) @ h0))
-                j = int(pf.argmax())
-                if seen[j] != c:                         # mistake -> signed error modulator M = confidence
-                    Aw = self.A[:, win]
-                    lab = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
-                    wrong = (lab >= 0) & (lab != c)
-                    g[wrong] *= -self.it_lvq * float(pf[j])  # LTD-like: push wrong-class prototypes away
-                    self.n_lvq += 1
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
             if self._trace is not None and self.trace_w > 0:
                 T = self._trace[self._trace < self.used]
                 gt = (self.trace_w / (1.0 + self.n[T]))[:, None]
                 self.W[T] = _unit(self.W[T] + gt * (x[None] - self.W[T]))   # trace rule: bind views together
+            a = self.W[:self.used] @ x
+        if lvq is not None and len(lvq[0]):
+            # LTD-like: active units voting for the wrong class move away from the input
+            # (category learning reshapes IT tuning), scaled by M and by each unit's own evidence
+            bad, M, ab = lvq
+            gb = (self.it_lvq * M * np.maximum(ab, 0) / (1.0 + self.n[bad]))[:, None]
+            self.W[bad] = _unit(self.W[bad] - gb * (x[None] - self.W[bad]))
+            self.n_lvq += 1
             a = self.W[:self.used] @ x
         if self.ie_gamma > 0 and self.used:
             win = self._code(a[None])[0][:self.used] > 0
