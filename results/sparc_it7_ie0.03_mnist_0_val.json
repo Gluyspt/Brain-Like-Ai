@@ -1,0 +1,22 @@
+{
+ "model": "sparc",
+ "data": "mnist",
+ "seed": 0,
+ "split": "val",
+ "quick": false,
+ "overrides": {
+  "ie_gamma": 0.03
+ },
+ "tag": "it7_ie0.03",
+ "FEW_base_old_acc": 0.9821205821205822,
+ "NOVELTY": 0.9010134698369993,
+ "surprise_mean_old_new": [
+  0.13393564522266388,
+  0.2306637316942215
+ ],
+ "FEW1": 0.12941176470588237,
+ "FEW1_old_drop": 0.013097713097713126,
+ "FEW5": 0.42100840336134454,
+ "FEW5_old_drop": 0.013929313929313958,
+ "wall_clock_s": 86.82368087768555
+}

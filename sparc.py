@@ -41,7 +41,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.0, ie_tau=2000.0):
+                 ie_gamma=0.0, ie_tau=2000.0, cls_gate=0.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -54,6 +54,7 @@ class SPARC:
         # intrinsic excitability: newborn units start hyperexcitable; homeostasis pulls each unit's
         # recent win rate r_i toward the population target k/used (Turrigiano-style intrinsic plasticity)
         self.ie_gamma, self.ie_tau = ie_gamma, ie_tau
+        self.cls_gate = cls_gate   # CLS: slow readout trusted per class only as far as it is consolidated
         self.r = np.zeros(self.N)
         self.used = 0                        # units recruited so far (budget = N)
         self.s_mu, self.s_var = 0.2, 0.01    # running surprise statistics (neuromodulator baseline)
@@ -359,6 +360,10 @@ class SPARC:
             return ps
         if self.mix == 'conf':
             wf, ws = pf.max(1, keepdims=True), ps.max(1, keepdims=True)
+            if self.cls_gate > 0:  # CLS: a not-yet-consolidated class is hippocampus-dependent
+                cnt = np.bincount(self.h_lab[:self.h_n], minlength=self.C)[allowed]
+                g = np.minimum(1.0, cnt / self.cls_gate)       # consolidation level per class
+                ws = ws * g[pf.argmax(1)][:, None]             # fast guess unconsolidated -> cortex defers
             if self.arbitrate:  # arbitration by uncertainty (Daw et al. 2005)
                 ws = ws * (1.0 - self.U[allowed][ps.argmax(1)])[:, None]
             return (wf * pf + ws * ps) / (wf + ws)
