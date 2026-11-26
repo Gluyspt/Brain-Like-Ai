@@ -38,7 +38,7 @@ class SPARC:
                  hemi=False, hemi_grid=2, hemi_w=1.0,
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
-                 it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
+                 it_lvq=0.0, glimpses=3, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
