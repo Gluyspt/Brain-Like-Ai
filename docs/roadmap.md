@@ -11,7 +11,7 @@ Every stage keeps the hard rules: local plasticity, online learning, no raw-inpu
 | **3** | **Structure and relations**: codes that transfer a learned relation to new items | hippocampal–entorhinal cognitive maps, grid-like codes for abstract spaces | transitive inference, same/different rules, structure transfer to new items | planned |
 | **4** | **Working memory + gating**: holds and updates information over steps | prefrontal persistent activity, basal-ganglia gating, dopamine | n-back, 1-2-AX, delayed match-to-sample | planned |
 | **5** | **Thinking as simulation**: imagines options before acting | hippocampal replay/preplay, model-based planning | mazes and shortcuts, planning with a learned model, reward learning (dopamine RPE) | planned |
-| **6** | **Grounded symbols and language**: words bound to sensory codes | multimodal association cortex; language areas | spoken digits ↔ images (cross-modal recall), simple grounded word learning, then character-level text | planned |
+| **6** | **Grounded symbols and language**: words bound to sensory codes | multimodal association cortex; language areas | spoken digits ↔ images (cross-modal recall); **Molyneux test** (research/18): zero-shot cross-modal recognition, then how fast cross-modal binding is learned; simple grounded word learning, then character-level text | planned |
 | **7** | **Abstract reasoning**: composes known pieces into new answers | prefrontal relational reasoning, rule abstraction, metacognition | Raven's-style matrices; ARC-style few-example puzzles | planned |
 
 ## Stage 1: what remains (round 2, docs/loop.md)
