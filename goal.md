@@ -1,6 +1,6 @@
 # goal.md — Toward a brain-like model that understands, thinks and reasons
 
-> Status (2026-11-26): **Stage 1** (perception + memory). Round 1 done (It 0–12): SPARC (test, 3 seeds) MNIST 94.4 / FGT 0.9, Fashion 80.5 / FGT 10.4; open MUSTs: MNIST few-shot (42.7 vs 70), Fashion FGT (10.4 vs 10), Fashion few-shot old-class drop (2.8 vs 2). Round 2 in progress (docs/loop.md): eye movements cut Fashion FGT to 6.3 (val); relearning after forgetting not yet solved. Details: ARCHITECTURE.md, docs/iteration-log.md.
+> Status (2026-11-26): **Stage 1** (perception + memory). Round 2 done: SPARC + eye movements (test, 3 seeds) MNIST 94.7 / FGT 0.7, Fashion 81.6 / FGT 7.2 (M3 now passes); all SHOULDs pass; open MUSTs: MNIST few-shot (41.2 vs 70), few-shot old-class drop (2.1 / 2.8 vs 2). Relearning after forgetting not yet solved. Details: ARCHITECTURE.md, docs/iteration-log.md.
 
 ## 0. Ultimate goal (user, 2026-11-26)
 A model that actually **understands**, can **think**, and does real **reasoning**, built from brain mechanisms (brain-first rule, docs/rules.md) and learning the way a brain does.
