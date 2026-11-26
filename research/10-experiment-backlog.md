@@ -8,6 +8,7 @@ Ordered by expected value (item 2, top-down bias, is now first in line; item 3, 
 | 2 | **Top-down conflict bias** on IT competition, plus a "second look" at test time | PFC bias signals, predictive feedback | MNIST few-shot, old-class drop | medium | 05 |
 | 3 | **Second learned layer (V2)**: now top priority (CIFAR-10: 36.1 % vs 47.7 joint, novelty 0.56) between V1 and IT, same competitive-Hebbian rule, its own critical period | cortical hierarchy (V1 → V2 → V4 → IT) | MNIST few-shot (single-layer limit) | medium–large | 01, 09 |
 | 3b | **Brain-plausible deep credit assignment**: error-driven IT tuning (LVQ-like three-factor), then feedback alignment into V2 | category learning reshapes IT tuning; dopamine-gated LTP/LTD | CIFAR-10, MNIST few-shot | small → medium | 13 |
+| 3c | **Context inference for stage-1 memory** (from stage 2, research/19): a reminder reactivates the old class's context instead of relearning it through shared units; aims at relearning (savings) | latent-cause inference, COIN | relearning (research/15) | medium | 19, 15 |
 | 4 | **IT-level sleep replay** (re-align prototypes and readouts) | sleep replay, synaptic homeostasis | Fashion FGT | medium | 03 |
 | 5 | **KC readout reserved for few-shot classes** | fly mushroom body | old-class drop | small | 02 |
 | 6 | **Learned hippocampal write gate** | basal-ganglia gating, dopamine | old-class drop, memory efficiency | medium | 07 |

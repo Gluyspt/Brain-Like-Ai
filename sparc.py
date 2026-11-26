@@ -40,7 +40,7 @@ class SPARC:
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=3, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
-                 engram_tag=False, syn_meta=False, refine_gate=False, gate_glimpses=False,
+                 engram_tag=False, syn_meta=False, refine_gate=True, gate_glimpses=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
