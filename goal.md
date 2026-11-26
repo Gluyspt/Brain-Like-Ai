@@ -24,6 +24,19 @@ Today's LLMs and deep nets learn in ways no brain does.
 Design a new architecture whose **learning** works like a brain's, prove it on a benchmark that measures brain-like learning, and iterate until it passes.
 Scope: the learning machinery, tested at small scale (image streams). Language scale is the roadmap (§11), not this loop.
 
+## 2b. What this project is (and is not)
+SPARC is a **new (integrative) architecture**: it replaces how a model learns. It is not a harness around an existing model. Its parts come from prior work; the combination under strict rules, measured on P1–P10, is the contribution. A harness around a pretrained LLM (memory, sleep, reversal bolted on) would be a different project and breaks P1.
+
+Three layers, kept separate (decided 2026-11-26):
+
+| Layer | What | Rule |
+|---|---|---|
+| **World** | `bench.py`, `data.py`, baselines: the data stream and the scoring | stays **outside** the model; the model never sees test data, task labels at test, or its own score |
+| **Body: senses** | sensory front-ends that turn raw input into sparse codes (V1 today; later hearing, …) | part of the model; must learn by local rules, or be a declared, ablated **innate** prior (e.g. the Gabor bank). No pretrained backprop encoders |
+| **Brain** | IT, hippocampus, sleep, readouts, and control loops such as **rethink** (ACC conflict detection → PFC top-down gain → second look) | part of the model; local plasticity; inference-time loops have a fixed budget |
+
+New senses (e.g. spoken digits bound to the same IT/hippocampal codes as images) are roadmap §11.5 and need their own benchmark first.
+
 ## 3. Testable definition of "learns like a brain"
 > **Brain-first rule (user directive, 2026-11-25).** Every step or decision about the model or its training must make it act more like a real brain. Name the brain mechanism behind each change in the §10 log. A change that only raises an accuracy number with no brain analogue does not belong here, even if it scores better; when a brain-like and a score-only option compete, pick the brain-like one and log the cost. Accuracy targets in §7 are checks that the brain-like machinery works, not the objective.
 
@@ -190,6 +203,7 @@ Suggested order (deviate when the data says so):
 2. **Depth**: stack local layers (SoftHebb-style) for CIFAR-10/100.
 3. **Reward**: dopamine-like reward-prediction error as the modulator M for reinforcement learning.
 4. **Language**: compare a SPARC-style continual learner with BDH and Nested-Learning/Hope on continual language modelling.
+5. **More senses**: a hearing front-end (e.g. spoken digits) learning by the same local rules, bound to the visual codes in IT and the hippocampus (cross-modal recall, multimodal few-shot). Requires a new benchmark in §6 first.
 
 ## 12. Agent team — when and how to spawn subagents
 **Principle:** the main session is the scientist; subagents are lab techs. Judgement never leaves the main session: hypotheses, diagnosis, pass/fail calls, merging code, editing goal.md, the final write-up. Work that is self-contained, fits in a short brief and can be checked from the files it produces goes to the **cheapest model and lowest effort that can do it**.

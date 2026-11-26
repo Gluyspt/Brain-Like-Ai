@@ -24,5 +24,15 @@ SPARC is **feed-forward**: nothing above IT changes which IT units win. Few-shot
 ## Test
 MNIST FEW-5 and the old-class drop; Fashion ACC; wall-clock, since a second pass costs about 2×.
 
+## Implementation (It 12)
+`sparc.py` `rethink`, `conflict`:
+- **ACC**: conflict when p(runner-up) > conflict × p(winner) after the first pass.
+- **PFC**: holds the two candidates c1, c2. Top-down gain on IT unit i is rethink · |Â_c1,i − Â_c2,i| / max, where Â are the normalised fast-readout rows.
+- **Second look**: IT re-runs k-WTA with that gain, and the decision is made again. At most one extra pass.
+
+The feedback reuses the readout weights in reverse. This is inference-time attention, not a learning update, so P1's weight-transport ban does not apply. A separately learned Hebbian feedback synapse (output c and unit i active together) would converge to the same A_ci.
+
+Conflict monitoring by the anterior cingulate: Botvinick et al. 2001, *Psych Review* [known].
+
 ## Status
-Planned.
+It 12 grid running (val, seed 0): rethink 0.03 / 0.1 / 0.3, conflict 0.3 / 0.5.
