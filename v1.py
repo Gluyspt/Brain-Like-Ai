@@ -24,18 +24,20 @@ def gabor_bank(K=64, p=5, seed=0):
 
 class V1:
     def __init__(self, rng, K=64, p=5, k=3, grid=3, mode='learned', rho1=0.5, eta_min=0.002,
-                 n_patch=10, contrast=0.1, lowsf=False):
+                 n_patch=10, contrast=0.1, lowsf=False, img_side=28, img_ch=1):
         self.rng, self.K, self.p, self.k, self.grid, self.mode = rng, K, p, k, grid, mode
         self.rho1, self.eta_min, self.n_patch, self.contrast = rho1, eta_min, n_patch, contrast
         self.lowsf = lowsf          # low spatial frequency 'hemisphere': sees a 2x2-averaged 14x14 image
-        side = 14 if lowsf else 28
+        self.img_side, self.ch = img_side, img_ch
+        side = img_side // 2 if lowsf else img_side
         self.side = side
         self.S = side - p + 1
         if mode == 'gabor':
-            self.D = gabor_bank(K, p)
+            g = gabor_bank(K, p)                       # luminance filters, same on every channel
+            self.D = _unit(np.repeat(g[:, None, :], img_ch, 1).reshape(K, -1))
             self.used = K
         else:
-            self.D = np.zeros((K, p * p), np.float32)
+            self.D = np.zeros((K, img_ch * p * p), np.float32)
             self.used = 0
         self.n = np.zeros(K)
         # pooling region of each position
@@ -44,10 +46,11 @@ class V1:
         self.out_dim = grid * grid * K
 
     def _patches(self, X):
-        """X (n,784) -> normalised patches (n, S*S, p*p) and contrast mask."""
-        I = X.reshape(-1, 28, 28)
+        """X (n, side*side*ch, HWC) -> normalised patches (n, S*S, ch*p*p) and contrast mask."""
+        s, c = self.img_side, self.ch
+        I = X.reshape(-1, s, s, c)
         if self.lowsf:
-            I = I.reshape(-1, 14, 2, 14, 2).mean((2, 4))
+            I = I.reshape(-1, s // 2, 2, s // 2, 2, c).mean((2, 4))
         P = sliding_window_view(I, (self.p, self.p), axis=(1, 2)).reshape(len(X), self.S * self.S, -1)
         P = P - P.mean(-1, keepdims=True)
         nrm = np.linalg.norm(P, axis=-1, keepdims=True)

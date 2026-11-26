@@ -49,19 +49,17 @@ class SPARC:
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
         self.merge_frac, self.merge_at_task_end = merge_frac, merge_at_task_end
-        self.v1 = None if v1 == 'none' else V1(self.rng, K=v1_K, k=v1_k, grid=v1_grid, mode=v1, eta_min=v1_eta_min)
+        self._v1cfg = dict(v1=v1, v1_K=v1_K, v1_k=v1_k, v1_grid=v1_grid, v1_eta_min=v1_eta_min,
+                           hemi=hemi, hemi_grid=hemi_grid)
         self.v1_cp = v1_cp   # critical period: V1 plasticity closes after v1_cp images (0 = never closes)
-        # second visual 'hemisphere': coarse, global (low spatial frequency) V1, joined at IT (callosal integration)
         self.hemi_w = hemi_w
         # rethink loop: ACC-like conflict detection -> PFC-like top-down gain on discriminative IT units
         # -> second look (one extra pass at most)
         self.rethink, self.conflict = rethink, conflict
         self.n_rethink = 0
-        self.v1b = V1(self.rng, K=v1_K, k=v1_k, grid=hemi_grid, mode=v1, eta_min=v1_eta_min, lowsf=True) \
-            if (hemi and self.v1 is not None) else None
-        self.D = 784 if self.v1 is None else self.v1.out_dim + (self.v1b.out_dim if self.v1b else 0)
+        self.kc_fan = kc_fan
+        self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
         # IT prototype layer (adaptive resonance)
-        self.W = np.zeros((self.N, self.D), np.float32)
         self.n = np.zeros(self.N)            # usage counts (metaplasticity)
         # intrinsic excitability: newborn units start hyperexcitable; homeostasis pulls each unit's
         # recent win rate r_i toward the population target k/used (Turrigiano-style intrinsic plasticity)
@@ -70,7 +68,6 @@ class SPARC:
         # fly-style readout (only the labelled class's synapses from active KCs change)
         self.kc_n, self.kc_k, self.kc_beta = kc_n, kc_k, kc_beta
         if kc_n:
-            self.kc_in = self.rng.randint(0, self.D, size=(kc_n, kc_fan))
             self.B = np.zeros((self.C, kc_n), np.float32)
         self.cls_gate = cls_gate   # CLS: slow readout trusted per class only as far as it is consolidated
         self.r = np.zeros(self.N)
@@ -104,9 +101,26 @@ class SPARC:
         self.n_recruit = self.n_seen = self.n_merged = self.n_consol = self.n_sleep = self.n_writes = 0
         self.full_at = -1
 
+    def _build(self, dim):
+        """Sensory geometry from the input width: 784 = 28x28 grey, 3072 = 32x32x3 colour (HWC)."""
+        side, ch = {784: (28, 1), 3072: (32, 3)}[dim]
+        c = self._v1cfg
+        self.v1 = None if c['v1'] == 'none' else V1(self.rng, K=c['v1_K'], k=c['v1_k'], grid=c['v1_grid'],
+                                                      mode=c['v1'], eta_min=c['v1_eta_min'], img_side=side, img_ch=ch)
+        # second visual 'hemisphere': coarse, global (low spatial frequency) V1, joined at IT
+        self.v1b = V1(self.rng, K=c['v1_K'], k=c['v1_k'], grid=c['hemi_grid'], mode=c['v1'],
+                      eta_min=c['v1_eta_min'], lowsf=True, img_side=side, img_ch=ch) \
+            if (c['hemi'] and self.v1 is not None) else None
+        self.D = dim if self.v1 is None else self.v1.out_dim + (self.v1b.out_dim if self.v1b else 0)
+        self.W = np.zeros((self.N, self.D), np.float32)
+        if self.kc_n:
+            self.kc_in = self.rng.randint(0, self.D, size=(self.kc_n, self.kc_fan))
+
     # ---------- encoding ----------
     def _pre(self, X):
         X = np.asarray(X, np.float32)
+        if self.D is None:
+            self._build(X.shape[1])
         if self.v1 is not None:
             Xr = X
             X = self.v1.encode(Xr)
@@ -157,6 +171,8 @@ class SPARC:
 
     # ---------- learning (awake) ----------
     def learn(self, X, y=None):
+        if self.D is None:
+            self._build(np.asarray(X).shape[1])
         if self.v1 is not None and (self.v1_cp == 0 or self.n_seen < self.v1_cp):
             self.v1.learn(np.asarray(X, np.float32)[0])
             if self.v1b is not None:
