@@ -40,7 +40,7 @@ class SPARC:
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=3, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
-                 engram_tag=False,
+                 engram_tag=False, syn_meta=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -104,6 +104,10 @@ class SPARC:
         self.s_mu, self.s_var = 0.2, 0.01    # running surprise statistics (neuromodulator baseline)
         # fast readout: per-class running mean of sparse codes (only row c changes)
         self.A = np.zeros((self.C, self.N), np.float32)
+        # per-synapse metaplasticity: each readout synapse counts the class-c examples seen since its
+        # unit was born; young synapses learn fast, well-confirmed ones stay stable (research/15)
+        self.syn_meta = syn_meta
+        self.E = np.zeros((self.C, self.N), np.float32)
         self.nc = np.zeros(self.C)
         # hippocampus: sparse code store
         self.M, self.hip_gain = hip_M, hip_gain
@@ -326,7 +330,12 @@ class SPARC:
             if self.correct and self.nc[c] > 0:
                 self._confident_error(h, c)
             self.nc[c] += 1
-            self.A[c] += (h - self.A[c]) / self.nc[c]
+            if self.syn_meta:
+                u = self.used
+                self.E[c, :u] += 1.0
+                self.A[c, :u] += (h[:u] - self.A[c, :u]) / self.E[c, :u]
+            else:
+                self.A[c] += (h - self.A[c]) / self.nc[c]
             if self.M > 0:
                 p = 1.0 / (1.0 + np.exp(-self.hip_gain * z))   # novelty-gated memory write
                 if self.rng.rand() < p:
@@ -360,6 +369,9 @@ class SPARC:
         lab = self.L[cp] if self.lab_tau > 0 else 1.0   # only a recently reactivated memory is labile
         if self.retrieval_reopen:
             self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))   # the reminded memory reopens
+            if self.syn_meta:
+                a_ = h > 0
+                self.E[c, a_] = np.maximum(1.0, self.E[c, a_] * (1.0 - self.reopen * M))
         if lab < 1e-3:
             return
         act = h > 0
@@ -368,6 +380,9 @@ class SPARC:
         if not self.retrieval_reopen:
             self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))
         self.nc[cp] = max(1.0, self.nc[cp] * (1.0 - self.reopen * M * lab))
+        if self.syn_meta:   # reconsolidation at the active synapses only
+            self.E[c, act] = np.maximum(1.0, self.E[c, act] * (1.0 - self.reopen * M))
+            self.E[cp, act] = np.maximum(1.0, self.E[cp, act] * (1.0 - self.reopen * M * lab))
         self.n_conf_err += 1
 
     # ---------- hippocampus ----------
@@ -482,6 +497,7 @@ class SPARC:
                     self.W[gi] = _unit(ni * self.W[gi] + nj * self.W[gj])
                     self.n[gi] = ni + nj
                     self.A[:, gi] += self.A[:, gj]
+                    self.E[:, gi] = np.maximum(self.E[:, gi], self.E[:, gj])
                     self.R[:, gi] += self.R[:, gj]
                     into[into == gj] = gi
                     drop.add(j)
@@ -497,7 +513,7 @@ class SPARC:
         self.n[:m] = self.n[keep]; self.n[m:u] = 0
         self.r[:m] = self.r[keep]; self.r[m:u] = 0
         self.blab[:m] = self.blab[keep]; self.blab[m:u] = -1
-        for Mx in (self.A, self.R):
+        for Mx in (self.A, self.R, self.E):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0
         if self.h_n:
             hi = self.h_idx[:self.h_n]
