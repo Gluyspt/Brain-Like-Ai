@@ -237,10 +237,10 @@ class SPARC:
         views = [self._shift(X) for _ in range(self.glimpses - 1)] + [X]   # glimpses, then the fixated view
         for g, V in enumerate(views):
             last = g == len(views) - 1
-            self._learn_view(V, y if last else None, first=(g == 0))  # label binds once, to the fixated view
+            self._learn_view(V, y if last else None, first=(g == 0), gate_y=y)  # label binds once, to the fixated view
         self._trace = None
 
-    def _learn_view(self, X, y=None, first=True):
+    def _learn_view(self, X, y=None, first=True, gate_y=None):
         if self.v1 is not None and (self.v1_cp == 0 or self.n_seen < self.v1_cp):
             self.v1.learn(np.asarray(X, np.float32)[0])
             if self.v1b is not None:
@@ -301,16 +301,21 @@ class SPARC:
             # resonance -> refine top-k winners, rate from own usage
             k = min(self.k, u)
             win = np.argpartition(-a, k - 1)[:k]
-            if self.refine_gate and c is not None:
+            cg = c if c is not None else (None if gate_y is None else int(np.asarray(gate_y).ravel()[0]))
+            if self.refine_gate and cg is not None:          # the object's identity is known for all its glimpses
                 Aw = self.A[:, win]
                 wl = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
-                win = win[(wl == c) | (wl < 0)]
+                win = win[(wl == cg) | (wl < 0)]
             eta = 1.0 / (1.0 + self.n[win])
             g = (eta * np.maximum(a[win], 0))[:, None]
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
             if self._trace is not None and self.trace_w > 0:
                 T = self._trace[self._trace < self.used]
+                if self.refine_gate and cg is not None:
+                    At = self.A[:, T]
+                    tl = np.where(At.max(0) > 0, At.argmax(0), -1)
+                    T = T[(tl == cg) | (tl < 0)]
                 gt = (self.trace_w / (1.0 + self.n[T]))[:, None]
                 self.W[T] = _unit(self.W[T] + gt * (x[None] - self.W[T]))   # trace rule: bind views together
             a = self.W[:self.used] @ x

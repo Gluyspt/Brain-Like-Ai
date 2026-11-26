@@ -1,0 +1,8 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data fashion --seed 0 --only life --tag r3_3b_life --set refine_gate=True > logs/r3_3b_life_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data fashion --seed 0 --only main,few --tag r3_3bc --set refine_gate=True > logs/r3_3bc_fashion_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data fashion --seed 1 --only main,few --tag r3_3bc --set refine_gate=True > logs/r3_3bc_fashion_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data fashion --seed 2 --only main,few --tag r3_3bc --set refine_gate=True > logs/r3_3bc_fashion_2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data mnist --seed 0 --only life --tag r3_3b_life --set refine_gate=True > logs/r3_3b_life_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data mnist --seed 0 --only main,few --tag r3_3bc --set refine_gate=True > logs/r3_3bc_mnist_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data mnist --seed 1 --only main,few --tag r3_3bc --set refine_gate=True > logs/r3_3bc_mnist_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --data mnist --seed 2 --only main,few --tag r3_3bc --set refine_gate=True > logs/r3_3bc_mnist_2.log 2>&1
