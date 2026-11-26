@@ -9,7 +9,7 @@ The basal ganglia pick one action, or one item of working memory, among competin
 
 ## How it helps our work
 - **Hippocampal writes** today use surprise only, a fixed rule. A learned gate could decide what is worth storing from whether stored traces later helped: did replaying them reduce errors?
-- **Roadmap §11.3, reward:** to learn from rewards rather than labels, the modulator M in the three-factor rule becomes a reward-prediction error. That would show that SPARC's rules work with sparse, delayed feedback.
+- **Roadmap docs/roadmap.md #3, reward:** to learn from rewards rather than labels, the modulator M in the three-factor rule becomes a reward-prediction error. That would show that SPARC's rules work with sparse, delayed feedback.
 - **Selection:** the k-WTA competition in IT is basal-ganglia-like winner selection, already in place.
 
 ## How it might work in SPARC
@@ -20,4 +20,4 @@ The basal ganglia pick one action, or one item of working memory, among competin
 LBL5-style sparse-feedback runs: accuracy when only a reward for a guess is given, not the label. Few-shot old-class drop for the learned write gate.
 
 ## Status
-Planned (roadmap §11.3).
+Planned (roadmap docs/roadmap.md #3).

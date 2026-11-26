@@ -1,4 +1,4 @@
-"""Benchmark protocol for brain-like learning (goal.md §6).
+"""Benchmark protocol for brain-like learning (docs/benchmark.md).
 
 python bench.py --model sparc --data mnist --seed 0 --split val --quick [--set key=val ...] [--tag name]
 

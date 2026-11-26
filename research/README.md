@@ -1,6 +1,6 @@
 # Research notes — brain mechanisms for SPARC
 
-This folder holds the background research behind SPARC. `goal.md` keeps only the plan, rules and iteration log, and points here.
+This folder holds the background research behind SPARC (findings, evidence, ideas). The goal is in `goal.md`; rules in `docs/rules.md`; results in `docs/iteration-log.md`. Full reference list: [references.md](references.md).
 
 Each file covers one brain system or theme, with the same sections:
 1. **What the brain does**: the mechanism, in plain words.
@@ -8,7 +8,7 @@ Each file covers one brain system or theme, with the same sections:
 3. **How it helps our work**: which measured SPARC gap it could close (numbers from `results/`).
 4. **How it might work in SPARC**: a concrete, local learning rule or circuit.
 5. **Test**: which benchmark metric should move, and the ablation that proves it.
-6. **Status**: used / tried / planned / rejected, with the `goal.md` §10 iteration.
+6. **Status**: used / tried / planned / rejected, with the `goal.md` docs/iteration-log.md iteration.
 
 ## Index
 
@@ -20,8 +20,8 @@ Each file covers one brain system or theme, with the same sections:
 | [04-hemispheres-and-visual-streams.md](04-hemispheres-and-visual-streams.md) | left/right specialisation, global vs local, ventral/dorsal streams | It 10: rejected (concatenation) |
 | [05-top-down-attention-pfc.md](05-top-down-attention-pfc.md) | prefrontal bias signals, predictive feedback | used: rethink loop (It 12) |
 | [06-thalamus-pulvinar-gating.md](06-thalamus-pulvinar-gating.md) | thalamic routing, synchrony, arbitration | partly (readout arbitration) |
-| [07-basal-ganglia-dopamine.md](07-basal-ganglia-dopamine.md) | action selection, gating of working memory, reward prediction error | planned (roadmap §11.3) |
-| [08-cerebellum-and-learning-systems.md](08-cerebellum-and-learning-systems.md) | supervised forward models; division of labour between learning systems | partly (delta-rule readouts); roadmap §11.1 |
+| [07-basal-ganglia-dopamine.md](07-basal-ganglia-dopamine.md) | action selection, gating of working memory, reward prediction error | planned (roadmap docs/roadmap.md #3) |
+| [08-cerebellum-and-learning-systems.md](08-cerebellum-and-learning-systems.md) | supervised forward models; division of labour between learning systems | partly (delta-rule readouts); roadmap docs/roadmap.md #1 |
 | [09-related-ai-systems.md](09-related-ai-systems.md) | SoftHebb, HiCL, Nested Learning/Hope, BDH, Fly Model | context and baselines |
 | [10-experiment-backlog.md](10-experiment-backlog.md) | prioritised list of the next experiments, each tied to a gap | living list |
 | [11-glossary.md](11-glossary.md) | terms used across the project | reference |
@@ -35,3 +35,11 @@ Each file covers one brain system or theme, with the same sections:
 
 ## Where SPARC stands (test split, 3 seeds, It 9 config)
 MNIST ACC 94.7 / FGT 0.9 / FEW-5 43.7; Fashion ACC 80.8 / FGT 10.9 / FEW-5 81.8. Open gaps: MNIST few-shot (target 70), few-shot old-class drop (2.2 / 3.2, target ≤ 2), Fashion FGT (target ≤ 10). See `ARCHITECTURE.md` §4.
+
+## Takeaways that drove the starting design
+1. Forgetting is mostly **interference**. Sparse, high-dimensional codes plus updating only active synapses removes most of it (fly).
+2. **Recruit new units for novel input; refine old units only on a good match** (ART). Stability without freezing everything.
+3. **Use-dependent plasticity** (learning rate ∝ 1/usage) makes heavily used units stable, like a critical period, while fresh units stay plastic.
+4. Local, feedback-free layers can learn good features fast (SoftHebb), so backprop is not required for usable representations.
+5. **Sleep with replay** can repair what waking learning damaged (SRC).
+6. Gap: the systems above each cover a few properties, and most continual-learning systems still train with backprop over many epochs. In this scan we did not find one model tested on **all** of P1–P9 at once under strict rules. That combined, measured system is the contribution; do not claim the individual parts are new.

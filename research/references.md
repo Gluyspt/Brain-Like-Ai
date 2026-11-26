@@ -1,0 +1,13 @@
+# References
+- Shen, Dasgupta, Navlakha — Algorithmic insights on continual learning from fruit flies: https://arxiv.org/abs/2107.07617
+- Zou, Zang, Ji — Structural features of the fly olfactory circuit mitigate the stability-plasticity dilemma: https://arxiv.org/abs/2502.01427
+- Grossberg — Adaptive resonance theory (Scholarpedia): https://doi.org/10.4249/scholarpedia.1569
+- da Silva et al. — A survey of ART neural network models: https://arxiv.org/abs/1905.11437
+- Masuyama et al. — ART-based topological clustering with self-adjusting vigilance: https://arxiv.org/abs/2511.17983
+- Journé et al. — Hebbian deep learning without feedback (SoftHebb): https://arxiv.org/abs/2209.11883
+- Tadros et al. — Sleep-like unsupervised replay reduces catastrophic forgetting: https://doi.org/10.1038/s41467-022-34938-7
+- Kapoor et al. — HiCL: Hippocampal-inspired continual learning: https://arxiv.org/abs/2508.16651
+- Google Research — Introducing Nested Learning: https://research.google/blog/introducing-nested-learning-a-new-ml-paradigm-for-continual-learning/
+- Kosowski et al. — The Dragon Hatchling (BDH): https://arxiv.org/abs/2509.26507
+- Hua et al. — Hebbian learning with global direction: https://arxiv.org/abs/2601.21367
+- Claude Code docs — Subagents (frontmatter, model and effort order, background runs, worktree isolation): https://code.claude.com/docs/en/sub-agents

@@ -43,4 +43,4 @@ Many settings tuned on one validation split can overfit that split.
 ## Actions taken (2026-11-26)
 - **B5 GDumb** baseline added (`baselines.py`).
 - **CIFAR-10** loader (restricted unpickler, md5-checked archive) and colour V1 (5×5×3 patches) added.
-- Results: see `goal.md` §10 (rows B5 and C1).
+- Results: see `goal.md` docs/iteration-log.md (rows B5 and C1).

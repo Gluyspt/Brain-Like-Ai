@@ -24,14 +24,14 @@ SPARC already follows this division:
 | supervised, single-layer error | cerebellum-like | the fast readout and the sleep delta rule |
 | reinforcement | basal ganglia | not yet (file 07) |
 
-The big missing piece is **prediction over time**, roadmap §11.1, the step towards sequences and language.
+The big missing piece is **prediction over time**, roadmap docs/roadmap.md #1, the step towards sequences and language.
 
 ## How it might work in SPARC
 - **Temporal predictor**: a single-layer, cerebellum-like map P from the current IT code h_t to the next one, ĥ_{t+1} = P h_t, learned with a delta rule ΔP = η (h_{t+1} − ĥ_{t+1}) h_tᵀ. The prediction error becomes a better surprise signal than 1 − max match, because it measures "unexpected given context".
 - Test on sequence streams (e.g. digit sequences with structure), then on character-level text.
 
 ## Test
-A sequence benchmark (to be defined in goal.md §6 when roadmap §11.1 starts); NOVELTY AUROC using prediction error vs match-based surprise.
+A sequence benchmark (to be defined in docs/benchmark.md when roadmap docs/roadmap.md #1 starts); NOVELTY AUROC using prediction error vs match-based surprise.
 
 ## Status
-Partly (supervised single-layer readouts). Temporal prediction planned (roadmap §11.1).
+Partly (supervised single-layer readouts). Temporal prediction planned (roadmap docs/roadmap.md #1).

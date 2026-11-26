@@ -3,7 +3,7 @@
 All plasticity is local (pre activity, post activity, broadcast scalar modulators).
 No autograd, no backprop through layers. Batch 1, single pass. No raw-input storage.
 
-Brain mapping (see goal.md §5 / ARCHITECTURE.md):
+Brain mapping (see docs/design-v1.md / ARCHITECTURE.md):
   V1        experience-dependent simple-cell dictionary, critical period via 1/usage learning rate
   IT        adaptive-resonance prototypes: refine on match, recruit on mismatch (ACh/NE-gated vigilance)
   fast      fly mushroom-body style readout: only the labelled class's synapses from active units change

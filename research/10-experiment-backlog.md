@@ -15,9 +15,9 @@ Ordered by expected value (item 2, top-down bias, is now first in line; item 3, 
 | 9 | **Reward instead of labels** | dopamine reward-prediction error | roadmap: reinforcement | medium | 07 |
 
 ## How to run an item
-1. Write the hypothesis in `goal.md` §8 style: mechanism → failure it should fix.
+1. Write the hypothesis in `goal.md` docs/loop.md style: mechanism → failure it should fix.
 2. Implement it behind a flag that is off by default, and quick-test on `--split val`.
-3. Log in `goal.md` §10 with the brain mechanism and its cost.
+3. Log in `goal.md` docs/iteration-log.md with the brain mechanism and its cost.
 4. Adopt it only if it helps without breaking the brain-first rule; then rerun the ablations and the 3-seed test bench.
 
 ## Done or rejected (for reference)
