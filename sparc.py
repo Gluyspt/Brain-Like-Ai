@@ -38,7 +38,7 @@ class SPARC:
                  hemi=False, hemi_grid=2, hemi_w=1.0,
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
-                 it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5,
+                 it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -69,6 +69,9 @@ class SPARC:
         # eye movements: each image is seen as a few shifted glimpses in a row (saccade-like); a trace rule
         # (Foldiak 1991) pulls the previous glimpse's winners toward the current view -> shift invariance
         self.glimpses, self.glimpse_shift, self.trace_w = glimpses, glimpse_shift, trace_w
+        # retrieval-triggered reconsolidation: a reminder of class c makes c's own memory labile,
+        # even when the competing (wrongly predicted) memory is not (research/15)
+        self.retrieval_reopen = retrieval_reopen
         self._trace = None
         self.n_lvq = 0
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
@@ -341,12 +344,15 @@ class SPARC:
             for cc in (c, cp):
                 self.U[cc] = min(1.0, self.U[cc] + M / 10.0)
         lab = self.L[cp] if self.lab_tau > 0 else 1.0   # only a recently reactivated memory is labile
+        if self.retrieval_reopen:
+            self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))   # the reminded memory reopens
         if lab < 1e-3:
             return
         act = h > 0
         g = lab * min(1.0, self.ltd * M * 50.0 / (50.0 + self.nc[cp]))
         self.A[cp, act] *= (1.0 - g * hn[act] / (hn[act].max() + 1e-8))
-        self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))
+        if not self.retrieval_reopen:
+            self.nc[c] = max(1.0, self.nc[c] * (1.0 - self.reopen * M))
         self.nc[cp] = max(1.0, self.nc[cp] * (1.0 - self.reopen * M * lab))
         self.n_conf_err += 1
 
