@@ -24,7 +24,7 @@ def main_table(tag):
     print('| model | data | n | ACC | FGT | FEW1 | FEW5 | FEW5 old drop | LBL5 | NOVELTY | REV ex/class→80 % | REV final | REV other drop | NOISE gap |')
     print('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
     for d in ('mnist', 'fashion'):
-        for m, t in (('sparc', tag), ('b1', 'final'), ('b2', 'final'), ('b3', 'final'), ('b4', 'final')):
+        for m, t in (('sparc', tag), ('b1', 'final'), ('b2', 'final'), ('b3', 'final'), ('b4', 'final'), ('b5', 'final')):
             D = load(f'results/{m}_{t}_{d}_*_test.json')
             if not D:
                 continue
