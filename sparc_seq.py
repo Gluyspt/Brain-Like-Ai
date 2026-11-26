@@ -156,10 +156,11 @@ class CtxSeqSPARC(SeqSPARC):
     hippocampal remapping. research/17.
     """
 
-    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, **kw):
+    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, min_age=0, **kw):
         kw.setdefault('ctx', 'q'); kw.setdefault('use_h', False); kw.setdefault('meta', True)
         super().__init__(seed=seed, **kw)
         self.K, self.lam, self.ctx_vig, self.grace = K, lam, ctx_vig, grace
+        self.min_age = min_age   # a context must have learned this many steps before its failure can recruit a new one
         self.n_ctx_new = 0
 
     def _init(self):
@@ -170,6 +171,7 @@ class CtxSeqSPARC(SeqSPARC):
         self.score = np.zeros(self.K)       # running log-likelihood per context
         self.active = 0
         self.since_new = 0
+        self.age = np.zeros(self.K)
 
     def reset_context(self):
         super().reset_context()
@@ -200,7 +202,8 @@ class CtxSeqSPARC(SeqSPARC):
             if learn and self._last_z is not None:
                 self.since_new += 1
                 best = int(np.argmax(self.score[:self.used_k]))
-                if (self.score[best] < self.ctx_vig and self.since_new > self.grace and self.used_k < self.K):
+                if (self.score[best] < self.ctx_vig and self.since_new > self.grace and self.used_k < self.K
+                        and self.age[best] >= self.min_age):
                     k = self.used_k; self.used_k += 1          # persistent surprise -> a new context (latent cause)
                     self.score[k] = 0.0; best = k; self.since_new = 0; self.n_ctx_new += 1
                 self.active = best
@@ -209,6 +212,7 @@ class CtxSeqSPARC(SeqSPARC):
                 ez = np.maximum(1.0 / (1.0 + self.nk[self.active, zi]), self.eta_min)
                 self.Pk[self.active][:, zi] += np.outer(err, zv * ez)
                 self.nk[self.active, zi] += 1
+                self.age[self.active] += 1
             else:
                 self.active = int(np.argmax(self.score[:self.used_k]))
         else:
