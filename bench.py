@@ -297,6 +297,13 @@ def main():
             rcurve.append((s + len(ridx[s:s + 10]), v))
             if n_re is None and v >= thr:
                 n_re = s + len(ridx[s:s + 10])
+        if hasattr(model, 'mix'):   # which readout blocks recovery? (diagnostic)
+            pi = probe[jt]; old_mix = model.mix
+            for mx in ('fast', 'slow'):
+                model.mix = mx
+                res[f'SAV_relearned_{mx}'] = float((model.predict(Xev[pi], all_cls) == yev[pi]).mean())
+            model.mix = old_mix
+            res['SAV_hip_per_class'] = model.diagnostics().get('hip_per_class')
         res.update(SAV_task=list(TASKS[jt]), SAV_peak=peak[jt], SAV_forgotten_to=final[jt],
                    SAV_n_first=n_first, SAV_n_relearn=n_re, SAV_relearned_to=rcurve[-1][1] if rcurve else None,
                    SAV_ratio=(n_first / n_re) if (n_first and n_re) else None,
