@@ -1,0 +1,43 @@
+{
+ "model": "ngram1",
+ "seed": 0,
+ "split": "val",
+ "steps": 3000,
+ "overrides": {},
+ "tag": "",
+ "worlds": [
+  "W1_count",
+  "W2_plus3",
+  "W3_perm",
+  "W4_fib"
+ ],
+ "online_end_acc": {
+  "W1_count": 1.0,
+  "W2_plus3": 0.002,
+  "W3_perm": 1.0,
+  "W4_fib": 0.15
+ },
+ "retention": {
+  "W1_count": 0.40404691323169584,
+  "W2_plus3": 0.09820007528703181,
+  "W3_perm": 0.5608458027479767,
+  "W4_fib": 0.08473978919631094
+ },
+ "violation_auroc": {
+  "W1_count": 0.9394995248653786,
+  "W2_plus3": 0.8157979407979408,
+  "W3_perm": 0.7005861154013703,
+  "W4_fib": 0.4794388335458964
+ },
+ "completion": {
+  "W1_count": 0.16875,
+  "W2_plus3": 0.10625,
+  "W3_perm": 0.55,
+  "W4_fib": 0.1125
+ },
+ "mean_online": 0.5379999999999999,
+ "mean_retention": 0.2869581451157538,
+ "mean_violation": 0.7338306036526465,
+ "mean_completion": 0.23437500000000003,
+ "wall_clock_s": 0.08130979537963867
+}

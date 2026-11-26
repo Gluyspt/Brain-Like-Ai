@@ -1,0 +1,43 @@
+{
+ "model": "chance",
+ "seed": 0,
+ "split": "val",
+ "steps": 3000,
+ "overrides": {},
+ "tag": "",
+ "worlds": [
+  "W1_count",
+  "W2_plus3",
+  "W3_perm",
+  "W4_fib"
+ ],
+ "online_end_acc": {
+  "W1_count": 0.1,
+  "W2_plus3": 0.1,
+  "W3_perm": 0.166,
+  "W4_fib": 0.2
+ },
+ "retention": {
+  "W1_count": 0.10817094861660079,
+  "W2_plus3": 0.09100094108789761,
+  "W3_perm": 0.08645049877658573,
+  "W4_fib": 0.13469132316958404
+ },
+ "violation_auroc": {
+  "W1_count": 0.5,
+  "W2_plus3": 0.5,
+  "W3_perm": 0.5,
+  "W4_fib": 0.5
+ },
+ "completion": {
+  "W1_count": 0.0875,
+  "W2_plus3": 0.1,
+  "W3_perm": 0.0875,
+  "W4_fib": 0.125
+ },
+ "mean_online": 0.14150000000000001,
+ "mean_retention": 0.10507842791266704,
+ "mean_violation": 0.5,
+ "mean_completion": 0.1,
+ "wall_clock_s": 0.09102010726928711
+}
