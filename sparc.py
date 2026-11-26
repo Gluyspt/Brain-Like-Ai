@@ -38,6 +38,7 @@ class SPARC:
                  hemi=False, hemi_grid=2, hemi_w=1.0,
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
+                 it_lvq=0.0,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -62,6 +63,10 @@ class SPARC:
         self.kc_fan = kc_fan
         self._v2cfg = dict(v2=v2, K=v2_K, k=v2_k, grid=v2_grid, concat=v2_concat)
         self.v2_cp = v2_cp   # V2 critical period closes later than V1's (hierarchical maturation)
+        # error-driven IT tuning (category learning reshapes IT selectivity; dopamine-gated LTP/LTD):
+        # on a wrong prediction, active units voting for a wrong class move away from the input
+        self.it_lvq = it_lvq
+        self.n_lvq = 0
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
         # IT prototype layer (adaptive resonance)
         self.n = np.zeros(self.N)            # usage counts (metaplasticity)
@@ -232,6 +237,17 @@ class SPARC:
             win = np.argpartition(-a, k - 1)[:k]
             eta = 1.0 / (1.0 + self.n[win])
             g = (eta * np.maximum(a[win], 0))[:, None]
+            if self.it_lvq > 0 and c is not None and self.nc[c] > 0:
+                seen = np.where(self.nc > 0)[0]
+                h0 = _unit(self._code(a[None]))[0]
+                pf = _softmax(self.beta * (_unit(self.A[seen]) @ h0))
+                j = int(pf.argmax())
+                if seen[j] != c:                         # mistake -> signed error modulator M = confidence
+                    Aw = self.A[:, win]
+                    lab = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
+                    wrong = (lab >= 0) & (lab != c)
+                    g[wrong] *= -self.it_lvq * float(pf[j])  # LTD-like: push wrong-class prototypes away
+                    self.n_lvq += 1
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
             a = self.W[:self.used] @ x
@@ -500,6 +516,6 @@ class SPARC:
     def diagnostics(self):
         return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen),
                     n_merged=int(self.n_merged), n_consol=int(self.n_consol), full_at=int(self.full_at),
-                    n_sleep=int(self.n_sleep), n_rethink=int(self.n_rethink), n_match_track=int(self.n_mt), n_conf_err=int(self.n_conf_err), n_cleaned=int(self.n_cleaned), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
+                    n_sleep=int(self.n_sleep), n_rethink=int(self.n_rethink), n_lvq=int(self.n_lvq), n_match_track=int(self.n_mt), n_conf_err=int(self.n_conf_err), n_cleaned=int(self.n_cleaned), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
                     hip_per_class=[int(v) for v in np.bincount(self.h_lab[:self.h_n], minlength=self.C)],
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])

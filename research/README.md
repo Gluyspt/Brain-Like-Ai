@@ -25,6 +25,7 @@ Each file covers one brain system or theme, with the same sections:
 | [09-related-ai-systems.md](09-related-ai-systems.md) | SoftHebb, HiCL, Nested Learning/Hope, BDH, Fly Model | context and baselines |
 | [10-experiment-backlog.md](10-experiment-backlog.md) | prioritised list of the next experiments, each tied to a gap | living list |
 | [11-glossary.md](11-glossary.md) | terms used across the project | reference |
+| [13-credit-assignment.md](13-credit-assignment.md) | learning from mistakes deeper in the network without backprop | R2-2 in test |
 | [12-prior-attempts-and-warnings.md](12-prior-attempts-and-warnings.md) | who tried this before (ART, Leabra, Spaun, HTM, Human Brain Project, bio-plausible backprop) and the warnings | read before claiming results |
 
 ## Rules for these notes

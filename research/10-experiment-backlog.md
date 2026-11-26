@@ -7,6 +7,7 @@ Ordered by expected value (item 2, top-down bias, is now first in line; item 3, 
 | 1 | ~~Two-hemisphere V1, concatenated at IT~~: **rejected** (It 10: no few-shot gain, Fashion FGT +2–5). Variant still open: separate hemisphere IT populations with a learned gate | hemispheric specialisation + thalamic gating | Fashion look-alikes | medium | 04, 06 |
 | 2 | **Top-down conflict bias** on IT competition, plus a "second look" at test time | PFC bias signals, predictive feedback | MNIST few-shot, old-class drop | medium | 05 |
 | 3 | **Second learned layer (V2)**: now top priority (CIFAR-10: 36.1 % vs 47.7 joint, novelty 0.56) between V1 and IT, same competitive-Hebbian rule, its own critical period | cortical hierarchy (V1 → V2 → V4 → IT) | MNIST few-shot (single-layer limit) | medium–large | 01, 09 |
+| 3b | **Brain-plausible deep credit assignment**: error-driven IT tuning (LVQ-like three-factor), then feedback alignment into V2 | category learning reshapes IT tuning; dopamine-gated LTP/LTD | CIFAR-10, MNIST few-shot | small → medium | 13 |
 | 4 | **IT-level sleep replay** (re-align prototypes and readouts) | sleep replay, synaptic homeostasis | Fashion FGT | medium | 03 |
 | 5 | **KC readout reserved for few-shot classes** | fly mushroom body | old-class drop | small | 02 |
 | 6 | **Learned hippocampal write gate** | basal-ganglia gating, dopamine | old-class drop, memory efficiency | medium | 07 |
