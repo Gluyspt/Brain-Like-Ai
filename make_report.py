@@ -84,5 +84,5 @@ def ablation_table():
 
 
 if __name__ == '__main__':
-    main_table('final2')
+    main_table('final3')
     ablation_table()

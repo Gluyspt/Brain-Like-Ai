@@ -7,7 +7,7 @@ Design rule (user directive, goal.md §3): **every mechanism must be something a
 ## 1. Architecture
 
 ```
-image ─► V1   5×5 contrast-normalised patches; 64 competitive-Hebbian features (learned, critical period);
+image ─► V1   5×5 contrast-normalised patches; 64 competitive-Hebbian features (learned in a critical period that closes);
          │    k-WTA 3/64 per position; fixed 4×4 sum-pooling → 1024-d
          ▼
          IT   adaptive-resonance prototypes (budget N = 3000): cosine match, k-WTA 15 (0.5 %),
@@ -31,7 +31,7 @@ Notation: x = normalised V1 vector, a_i = w_i·x (cosine), s = 1 − max_i a_i (
 
 | Component | Rule | Brain mechanism |
 |---|---|---|
-| V1 dictionary | 10 random contrast patches p per image; winner d_k ← unit(d_k + η_k(p − d_k)), η_k = 1/(1+n_k); imprint a free feature if best match < 0.5 | experience-dependent simple-cell tuning; 1/usage = critical period |
+| V1 dictionary | 10 random contrast patches p per image; winner d_k ← unit(d_k + η_k(p − d_k)), η_k = max(1/(1+n_k), 0.002); imprint a free feature if best match < 0.5; **plasticity closes after the first 12 000 images** | experience-dependent simple-cell tuning; critical period that closes (PV maturation, perineuronal nets) |
 | IT recruitment | recruit (w_new = x) iff [max a < ρ = 0.8 and z > 1] or **match tracking**: labelled sample whose fast prediction is wrong | ART vigilance; ACh/NE novelty; ARTMAP match tracking |
 | IT refinement | top-k winners: w_i ← unit(w_i + η_i a_i (x − w_i)), η_i = 1/(1+n_i) | Hebbian/Oja-like competitive learning, metaplasticity |
 | Intrinsic excitability | winners chosen on a_i + γ·clip(1 − r_i/(k/used), ±1); r_i = win-rate trace (τ = 2000), newborn units r = 0 | hyperexcitable adult-born neurons; homeostatic intrinsic plasticity |
