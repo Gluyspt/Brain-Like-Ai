@@ -33,7 +33,7 @@ class SPARC:
                  # IT layer
                  n_it=3000, k_it=15, rho=0.80, center=True, refine=True, adapt_z=1.0, adapt_tau=500,
                  # V1
-                 v1='learned', v1_K=64, v1_k=3, v1_grid=4,
+                 v1='learned', v1_K=64, v1_k=3, v1_grid=4, v1_eta_min=0.002, v1_cp=0,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -47,7 +47,8 @@ class SPARC:
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
         self.merge_frac, self.merge_at_task_end = merge_frac, merge_at_task_end
-        self.v1 = None if v1 == 'none' else V1(self.rng, K=v1_K, k=v1_k, grid=v1_grid, mode=v1)
+        self.v1 = None if v1 == 'none' else V1(self.rng, K=v1_K, k=v1_k, grid=v1_grid, mode=v1, eta_min=v1_eta_min)
+        self.v1_cp = v1_cp   # critical period: V1 plasticity closes after v1_cp images (0 = never closes)
         self.D = 784 if self.v1 is None else self.v1.out_dim
         # IT prototype layer (adaptive resonance)
         self.W = np.zeros((self.N, self.D), np.float32)
@@ -139,7 +140,7 @@ class SPARC:
 
     # ---------- learning (awake) ----------
     def learn(self, X, y=None):
-        if self.v1 is not None:
+        if self.v1 is not None and (self.v1_cp == 0 or self.n_seen < self.v1_cp):
             self.v1.learn(np.asarray(X, np.float32)[0])
         x = self._pre(X)[0]
         self.n_seen += 1
