@@ -1,4 +1,4 @@
-"""Numpy baselines B1-B4. Common interface: name, batch_size, learn, end_task, predict, stats."""
+"""Numpy baselines B1-B5. Common interface: name, batch_size, learn, end_task, predict, stats."""
 import numpy as np
 
 
@@ -6,7 +6,8 @@ class MLP:
     name = 'b1'
     batch_size = 10
 
-    def __init__(self, seed, lr=0.05, sizes=(784, 400, 400, 10)):
+    def __init__(self, seed, lr=0.05, dim=784, sizes=None):
+        sizes = sizes or (dim, 400, 400, 10)
         self.rng = np.random.RandomState(seed)
         self.lr = lr
         self.W = [(self.rng.randn(a, b) * np.sqrt(2.0 / a)).astype(np.float32)
@@ -74,9 +75,10 @@ class ReplayMLP(MLP):
     name = 'b2'
     CAP = 500
 
-    def __init__(self, seed, lr=0.05):
-        super().__init__(seed, lr)
-        self.bX = np.zeros((self.CAP, 784), np.float32)
+    def __init__(self, seed, lr=0.05, dim=784):
+        super().__init__(seed, lr, dim)
+        self.dim = dim
+        self.bX = np.zeros((self.CAP, dim), np.float32)
         self.by = np.zeros(self.CAP, np.int64)
         self.n_seen = 0
 
@@ -100,7 +102,7 @@ class ReplayMLP(MLP):
             self.n_seen += 1
 
     def stats(self):
-        return dict(params=self._nparams(), stored_numbers=self.CAP * 785, raw_images_stored=self.CAP)
+        return dict(params=self._nparams(), stored_numbers=self.CAP * (self.dim + 1), raw_images_stored=self.CAP)
 
 
 class JointMLP(MLP):
@@ -125,8 +127,9 @@ class NCM:
     name = 'b4'
     batch_size = 10
 
-    def __init__(self, seed=0):
-        self.sums = np.zeros((10, 784), np.float64)
+    def __init__(self, seed=0, dim=784):
+        self.dim = dim
+        self.sums = np.zeros((10, dim), np.float64)
         self.cnt = np.zeros(10, np.int64)
 
     def learn(self, X, y):
@@ -147,8 +150,70 @@ class NCM:
         return allowed[d.argmin(1)]
 
     def stats(self):
-        return dict(params=0, stored_numbers=10 * 784, raw_images_stored=0)
+        return dict(params=0, stored_numbers=10 * self.dim, raw_images_stored=0)
 
 
-def make_baseline(name, seed):
-    return {'b1': MLP, 'b2': ReplayMLP, 'b3': JointMLP, 'b4': NCM}[name](seed)
+class GDumb:
+    """GDumb (Prabhu et al. 2020): greedy class-balanced memory; fresh MLP trained on memory at query time."""
+    name = 'b5'
+    batch_size = 10
+
+    def __init__(self, seed, mem=500, dim=784):
+        self.seed, self.mem, self.dim = seed, mem, dim
+        self.rng = np.random.RandomState(seed)
+        self.items = []  # list of (x, y)
+        self.cnt = {}
+        self.net = None
+        self.dirty = True
+
+    def learn(self, X, y):
+        if y is None:
+            return
+        for xi, yi in zip(X, y):
+            yi = int(yi)
+            if len(self.items) < self.mem:
+                self.items.append((xi.copy(), yi))
+            elif self.cnt.get(yi, 0) < self.mem / (len(self.cnt) + (yi not in self.cnt)):
+                big = max(self.cnt.values())
+                cands = [j for j, (_, c) in enumerate(self.items) if self.cnt[c] == big]
+                j = cands[self.rng.randint(len(cands))]
+                self.cnt[self.items[j][1]] -= 1
+                self.items[j] = (xi.copy(), yi)
+            else:
+                continue
+            self.cnt[yi] = self.cnt.get(yi, 0) + 1
+            self.dirty = True
+
+    def end_task(self):
+        pass
+
+    def _train(self, epochs=30, batch=16, lr=0.05, mom=0.9):
+        net = MLP(self.seed, dim=self.dim)
+        X = np.stack([x for x, _ in self.items]).astype(np.float32)
+        y = np.array([c for _, c in self.items], np.int64)
+        rng = np.random.RandomState(self.seed)
+        for _ in range(epochs):
+            perm = rng.permutation(len(X))
+            for s in range(0, len(X), batch):
+                idx = perm[s:s + batch]
+                gW, gb = net._grads(X[idx], y[idx])
+                for i in range(len(net.W)):
+                    net.vW[i] = mom * net.vW[i] - lr * gW[i]
+                    net.vb[i] = mom * net.vb[i] - lr * gb[i]
+                    net.W[i] += net.vW[i]
+                    net.b[i] += net.vb[i]
+        return net
+
+    def predict(self, X, allowed):
+        if self.dirty or self.net is None:
+            self.net = self._train()
+            self.dirty = False
+        return self.net.predict(X, allowed)
+
+    def stats(self):
+        net = self.net or MLP(self.seed, dim=self.dim)
+        return dict(params=net._nparams(), stored_numbers=self.mem * (self.dim + 1), raw_images_stored=self.mem)
+
+
+def make_baseline(name, seed, dim=784):
+    return {'b1': MLP, 'b2': ReplayMLP, 'b3': JointMLP, 'b4': NCM, 'b5': GDumb}[name](seed, dim=dim)

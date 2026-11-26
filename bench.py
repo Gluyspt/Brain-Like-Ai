@@ -10,12 +10,12 @@ import numpy as np
 from data import load, task_indices, TASKS
 
 
-def make_model(name, seed, overrides):
+def make_model(name, seed, overrides, dim=784):
     if name == 'sparc':
         from sparc import SPARC
         return SPARC(seed=seed, **overrides)
     from baselines import make_baseline
-    return make_baseline(name, seed)
+    return make_baseline(name, seed, dim=dim)
 
 
 def parse_val(v):
@@ -116,7 +116,7 @@ def main():
     # ---- main stream: ACC, FGT, SPARSITY ----
     if 'main' in parts:
         print('[main stream]', flush=True)
-        model = make_model(a.model, a.seed, overrides)
+        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
         if a.model == 'b3':
             idx = np.concatenate([task_indices(ytr, t, cap) for t in TASKS])
             model.fit_joint(Xtr[idx], ytr[idx], epochs=10)
@@ -138,7 +138,7 @@ def main():
     # ---- few-shot + novelty: learn tasks 1-4, then k labelled shots of classes 8, 9 ----
     if 'few' in parts and a.model != 'b3':
         print('[few-shot / novelty]', flush=True)
-        model = make_model(a.model, a.seed, overrides)
+        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
         run_stream(model, Xtr, ytr, Xev, yev, cap, tasks=TASKS[:4], log=False)
         old = list(range(8))
         base_old = acc_on(model, Xev, yev, old, old)
@@ -168,7 +168,7 @@ def main():
     # ---- few labels: 5% of stream labelled ----
     if 'lbl' in parts and a.model != 'b3':
         print('[5% labels]', flush=True)
-        model = make_model(a.model, a.seed, overrides)
+        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
         rng = np.random.RandomState(a.seed + 200)
         run_stream(model, Xtr, ytr, Xev, yev, cap, label_frac=0.05, rng=rng, log=False)
         res['LBL5'] = acc_on(model, Xev, yev, all_cls, all_cls)
@@ -183,7 +183,7 @@ def main():
             idx = task_indices(ytr, t, cap)
             halves[t] = (idx[:len(idx) // 2], idx[len(idx) // 2:])
         # REVERSAL: learn tasks 1-2 on first halves, then the second half of task 2 with labels 2<->3 swapped
-        model = make_model(a.model, a.seed, overrides)
+        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
         for t in TASKS[:2]:
             feed(model, Xtr, ytr, halves[t][0])
             model.end_task()
@@ -211,7 +211,7 @@ def main():
         # NOISE: first halves with 20% within-task flipped labels, second halves clean; vs fully clean run
         out = {}
         for noisy in (True, False):
-            model = make_model(a.model, a.seed, overrides)
+            model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
             rng = np.random.RandomState(a.seed + 300)
             for t in TASKS[:2]:
                 i1, i2 = halves[t]
