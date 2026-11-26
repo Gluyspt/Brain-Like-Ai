@@ -40,7 +40,8 @@ class SPARC:
                  hip_M=1000, hip_gain=1.0, sleep_epochs=3, sleep_eta=0.5, downscale=0.0,
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
-                 lab_tau=50.0, arbitrate=True, unc_tau=200.0):
+                 lab_tau=50.0, arbitrate=True, unc_tau=200.0,
+                 ie_gamma=0.0, ie_tau=2000.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -50,6 +51,10 @@ class SPARC:
         # IT prototype layer (adaptive resonance)
         self.W = np.zeros((self.N, self.D), np.float32)
         self.n = np.zeros(self.N)            # usage counts (metaplasticity)
+        # intrinsic excitability: newborn units start hyperexcitable; homeostasis pulls each unit's
+        # recent win rate r_i toward the population target k/used (Turrigiano-style intrinsic plasticity)
+        self.ie_gamma, self.ie_tau = ie_gamma, ie_tau
+        self.r = np.zeros(self.N)
         self.used = 0                        # units recruited so far (budget = N)
         self.s_mu, self.s_var = 0.2, 0.01    # running surprise statistics (neuromodulator baseline)
         # fast readout: per-class running mean of sparse codes (only row c changes)
@@ -89,14 +94,20 @@ class SPARC:
             X = X - X.mean(1, keepdims=True)
         return _unit(X)
 
+    def _bias(self, u):
+        if self.ie_gamma == 0 or u == 0:
+            return 0.0
+        tgt = self.k / u
+        return (self.ie_gamma * np.clip(1.0 - self.r[:u] / tgt, -1.0, 1.0)).astype(np.float32)
+
     def _code(self, a):
-        """k-WTA on activations a (n, used) -> sparse code (n, N)."""
+        """k-WTA on activations a (n, used) -> sparse code (n, N); winners chosen on a + excitability."""
         n, u = a.shape
         H = np.zeros((n, self.N), np.float32)
         if u == 0:
             return H
         k = min(self.k, u)
-        idx = np.argpartition(-a, k - 1, axis=1)[:, :k]
+        idx = np.argpartition(-(a + self._bias(u)), k - 1, axis=1)[:, :k]
         vals = np.take_along_axis(a, idx, 1)
         np.put_along_axis(H, idx, np.maximum(vals, 0), 1)
         return H
@@ -140,6 +151,7 @@ class SPARC:
             j = self.used
             self.W[j] = x
             self.n[j] = 1
+            self.r[j] = 0.0
             self.used += 1
             self.n_recruit += 1
             a = self.W[:self.used] @ x
@@ -152,6 +164,9 @@ class SPARC:
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
             a = self.W[:self.used] @ x
+        if self.ie_gamma > 0 and self.used:
+            win = self._code(a[None])[0][:self.used] > 0
+            self.r[:self.used] += (win - self.r[:self.used]) / self.ie_tau
         if c is not None:
             h = self._code(a[None])[0]
             if self.lab_tau > 0:
@@ -322,6 +337,7 @@ class SPARC:
         remap = newpos[into]
         self.W[:m] = self.W[keep]; self.W[m:u] = 0
         self.n[:m] = self.n[keep]; self.n[m:u] = 0
+        self.r[:m] = self.r[keep]; self.r[m:u] = 0
         for Mx in (self.A, self.R):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0
         if self.h_n:
