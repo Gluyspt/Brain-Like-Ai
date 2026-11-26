@@ -1,6 +1,8 @@
 # Brain-Like-Ai
 
-SPARC: a learning architecture built only from brain mechanisms (local plasticity, sparse codes, a hippocampus, sleep replay, self-correction), with no backprop. It is tested on class-incremental image streams (MNIST, Fashion-MNIST, CIFAR-10).
+Ultimate goal: a brain-like model that understands, thinks and reasons, reached through a ladder of stages (goal.md §0, docs/roadmap.md).
+
+Stage 1 (now): SPARC, a learning architecture built only from brain mechanisms (local plasticity, sparse codes, a hippocampus, sleep replay, self-correction), with no backprop. It is tested on class-incremental image streams (MNIST, Fashion-MNIST, CIFAR-10).
 
 | Start here | |
 |---|---|

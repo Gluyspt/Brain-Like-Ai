@@ -1,5 +1,5 @@
 # Project rules (all agents)
-- Goal: goal.md. Rules: docs/rules.md. Results log: docs/iteration-log.md. Benchmark: docs/benchmark.md. Only the main session edits these.
+- Ultimate goal: a brain-like model that understands, thinks and reasons, reached stage by stage (goal.md §0, docs/roadmap.md). Goal: goal.md. Rules: docs/rules.md. Results log: docs/iteration-log.md. Benchmark: docs/benchmark.md. Only the main session edits these.
 - SPARC stays local: no autograd, no backprop through layers, batch 1, single pass, no raw-image storage.
 - Tune on the validation split only (--split val). The test set is for logged results.
 - Touch only the files your task names. Report numbers copied from results JSON, never estimated.

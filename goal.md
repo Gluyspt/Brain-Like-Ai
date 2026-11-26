@@ -1,6 +1,33 @@
-# goal.md — Build an architecture that learns like a real brain
+# goal.md — Toward a brain-like model that understands, thinks and reasons
 
-> Status (2026-11-26): loop run It 0–12 (stop rule reached). Final SPARC (It 12, test, 3 seeds): MNIST 94.4 ACC / FGT 0.9, Fashion 80.5 / FGT 10.4; all SHOULDs pass; MUST gaps: MNIST few-shot (42.7 vs 70), Fashion FGT (10.4 vs 10), Fashion few-shot old-class drop (2.8 vs 2). Details: ARCHITECTURE.md, docs/iteration-log.md.
+> Status (2026-11-26): **Stage 1** (perception + memory). Round 1 done (It 0–12): SPARC (test, 3 seeds) MNIST 94.4 / FGT 0.9, Fashion 80.5 / FGT 10.4; open MUSTs: MNIST few-shot (42.7 vs 70), Fashion FGT (10.4 vs 10), Fashion few-shot old-class drop (2.8 vs 2). Round 2 in progress (docs/loop.md): eye movements cut Fashion FGT to 6.3 (val); relearning after forgetting not yet solved. Details: ARCHITECTURE.md, docs/iteration-log.md.
+
+## 0. Ultimate goal (user, 2026-11-26)
+A model that actually **understands**, can **think**, and does real **reasoning**, built from brain mechanisms (brain-first rule, docs/rules.md) and learning the way a brain does.
+
+These words are vague, so the project uses testable meanings:
+
+| Ability | Testable meaning | Brain basis |
+|---|---|---|
+| **Understand** | predicts what comes next and what an action will cause, not just labels the present | cortex as a prediction machine (predictive coding); world models |
+| | grasps structure: applies a relation learned on some things to new things (A > B, B > C ⇒ A > C) | hippocampal–entorhinal cognitive maps of abstract knowledge |
+| **Think** | holds information in mind and updates it step by step | prefrontal working memory, gated by the basal ganglia |
+| | imagines before acting: simulates options internally | hippocampal replay and preplay; model-based planning |
+| **Reason** | combines known pieces into new answers (composition, analogy) | prefrontal relational reasoning, abstract rule learning |
+| | knows what it doesn't know and checks itself | metacognition (ACC/PFC conflict monitoring) |
+
+Nobody has reached this in a brain-like system, so the project climbs a **ladder of stages**. Each stage has its own benchmark and must pass before the next builds on it (docs/roadmap.md; background in research/17):
+
+1. **Perception + memory**: continual, few-shot, self-correcting learning without forgetting. **Current stage** (§2–§4).
+2. **Prediction over time**: a world model of sequences.
+3. **Structure and relations**: cognitive-map codes that transfer to new items.
+4. **Working memory + gating**: multi-step tasks.
+5. **Thinking as simulation**: planning by imagined replay.
+6. **Grounded symbols and language**: words bound to sensory codes.
+7. **Abstract reasoning**: novel puzzles that need composition.
+
+The sections below define **Stage 1**.
+
 
 ## 1. Why
 Today's LLMs and deep nets learn in ways no brain does.
@@ -16,9 +43,9 @@ Today's LLMs and deep nets learn in ways no brain does.
 | **Knows when something is new** (mismatch / surprise signals) | Confidently wrong on novel inputs |
 | **Sleeps**: offline replay consolidates memories | No offline consolidation phase |
 
-## 2. Goal
+## 2. Stage-1 goal
 Design a new architecture whose **learning** works like a brain's, prove it on a benchmark that measures brain-like learning, and iterate until it passes.
-Scope: the learning machinery, tested at small scale (image streams). Language scale is on the roadmap (docs/roadmap.md), not in this loop.
+Scope: the learning machinery, tested at small scale (image streams). Later stages (prediction, structure, working memory, planning, language, reasoning) are in docs/roadmap.md.
 
 SPARC is a **new (integrative) architecture**: it replaces how a model learns. It is not a harness around an existing model. Its parts come from prior work; the combination under strict rules, measured on P1–P10, is the contribution. A harness around a pretrained LLM (memory, sleep, reversal bolted on) would be a different project and breaks P1.
 
@@ -36,7 +63,7 @@ Every change must also follow the **brain-first rule** (docs/rules.md).
 - **P9 Sleep:** an offline replay phase that measurably helps.
 - **P10 Self-correcting:** a wrong association can be unlearned when contrary evidence arrives (reversal learning), without damaging unrelated classes. Brain basis: confident-error prediction-error signals (dopamine/noradrenaline) boost plasticity where the mistake happened; recalled memories become labile again (reconsolidation); old links are often outcompeted rather than erased (extinction).
 
-## 4. Success criteria
+## 4. Stage-1 success criteria
 **MUST** (mean of 3 seeds, both datasets unless stated)
 - **M1** P1, P2, P6, P7 hold by construction (code audit: no autograd, no shuffling, no raw buffer).
 - **M2** ACC ≥ 90 % MNIST, ≥ 75 % Fashion.
@@ -64,7 +91,7 @@ Stop rule: round 1 (12 iterations) is done. Round 2 (docs/loop.md) has up to 8 i
 | Iteration log (all results, failures included) | `docs/iteration-log.md` |
 | Current design, equations, results, gaps | `ARCHITECTURE.md` |
 | Starting design (historical) | `docs/design-v1.md` |
-| Roadmap after the loop | `docs/roadmap.md` |
+| Roadmap: stages 1–7 toward understanding and reasoning | `docs/roadmap.md` |
 | Agent team and briefs | `docs/agents.md` (+ `.claude/agents/`) |
 | Environment and data sources | `docs/environment.md` |
 | Audit of rules and numbers | `docs/audit.md` |
