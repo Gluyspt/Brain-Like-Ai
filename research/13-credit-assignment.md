@@ -18,5 +18,10 @@ In SPARC, mistakes change only the top (readouts, recruitment, correction). V1 a
 ## Test
 CIFAR-10 ACC and NOVELTY, MNIST FEW-5, Fashion FGT; quick screen on 3 datasets, then val seeds 0–2.
 
+## Results
+- First screen invalid: the rule never fired (match tracking recruited first). Fixed.
+- Fixed rule, quick screen: small gains (Fashion 82.1 vs 80.6, CIFAR 38.6 vs 37.6).
+- **Full stream, 3 seeds: worse on Fashion** (80.8 / FGT 11.0 vs 81.3 / 9.5). Pushing old prototypes away from new look-alike inputs distorts the old classes over a long stream.
+
 ## Status
-R2-2a implemented behind a flag (off); runs after the R2-1 screen.
+Rejected (R2-2a). Feedback alignment into V2 (R2-2b) not tried: with the IT-level version failing, error-driven change of shared features risks the same distortion; it would need protection of old classes (lability gating) first.
