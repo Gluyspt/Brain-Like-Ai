@@ -1,10 +1,10 @@
 # 10 — Experiment backlog
 
-Ordered by expected value for the open gaps, measured at It 9 on the test split: MNIST FEW-5 is 43.7 (target 70); the few-shot old-class drop is 2.2 / 3.2 (target ≤ 2); Fashion FGT is 10.9 (target ≤ 10). Every item names its brain mechanism (brain-first rule).
+Ordered by expected value (item 2, top-down bias, is now first in line; item 3, a V2 layer, is the most direct test of the single-layer limit) for the open gaps, measured at It 9 on the test split: MNIST FEW-5 is 43.7 (target 70); the few-shot old-class drop is 2.2 / 3.2 (target ≤ 2); Fashion FGT is 10.9 (target ≤ 10). Every item names its brain mechanism (brain-first rule).
 
 | # | Experiment | Brain mechanism | Gap it targets | Cost | File |
 |---|---|---|---|---|---|
-| 1 | **Two-hemisphere V1** (global low-SF + local high-SF, joined at IT) | hemispheric spatial-frequency specialisation, callosal integration | MNIST few-shot, Fashion look-alikes | small (in test, It 10) | 04 |
+| 1 | ~~Two-hemisphere V1, concatenated at IT~~: **rejected** (It 10: no few-shot gain, Fashion FGT +2–5). Variant still open: separate hemisphere IT populations with a learned gate | hemispheric specialisation + thalamic gating | Fashion look-alikes | medium | 04, 06 |
 | 2 | **Top-down conflict bias** on IT competition, plus a "second look" at test time | PFC bias signals, predictive feedback | MNIST few-shot, old-class drop | medium | 05 |
 | 3 | **Second learned layer (V2)** between V1 and IT, same competitive-Hebbian rule, its own critical period | cortical hierarchy (V1 → V2 → V4 → IT) | MNIST few-shot (single-layer limit) | medium–large | 01, 09 |
 | 4 | **IT-level sleep replay** (re-align prototypes and readouts) | sleep replay, synaptic homeostasis | Fashion FGT | medium | 03 |

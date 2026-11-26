@@ -17,7 +17,7 @@ Each file covers one brain system or theme, with the same sections:
 | [01-plasticity-and-neuromodulators.md](01-plasticity-and-neuromodulators.md) | three-factor rules, ART, competitive Hebbian, intrinsic plasticity, critical periods | core: used |
 | [02-sparse-codes-and-the-fly.md](02-sparse-codes-and-the-fly.md) | mushroom body, sparse expansion, pattern separation | used (fast readout); KC pathway rejected (It 8) |
 | [03-hippocampus-sleep-consolidation.md](03-hippocampus-sleep-consolidation.md) | complementary learning systems, replay, sleep, reconsolidation | used (It 4, 5b, 7) |
-| [04-hemispheres-and-visual-streams.md](04-hemispheres-and-visual-streams.md) | left/right specialisation, global vs local, ventral/dorsal streams | It 10, in test |
+| [04-hemispheres-and-visual-streams.md](04-hemispheres-and-visual-streams.md) | left/right specialisation, global vs local, ventral/dorsal streams | It 10: rejected (concatenation) |
 | [05-top-down-attention-pfc.md](05-top-down-attention-pfc.md) | prefrontal bias signals, predictive feedback | planned (It 11 candidate) |
 | [06-thalamus-pulvinar-gating.md](06-thalamus-pulvinar-gating.md) | thalamic routing, synchrony, arbitration | partly (readout arbitration) |
 | [07-basal-ganglia-dopamine.md](07-basal-ganglia-dopamine.md) | action selection, gating of working memory, reward prediction error | planned (roadmap §11.3) |

@@ -30,5 +30,17 @@ Later ideas:
 ## Test
 FEW-5 on MNIST (target 70), Fashion FGT and ACC, and an ablation with the hemisphere turned off.
 
+## Result (It 10, val, seed 0) — rejected
+| config | MNIST ACC / FGT / FEW5 | Fashion ACC / FGT / FEW5 |
+|---|---|---|
+| one V1 (It 9) | 94.9 / 1.0 / 49.2 | 81.1 / 10.8 / 71.2 |
+| + global V1, w 0.5 | 94.5 / 0.9 / 46.4 | 80.5 / 12.8 / 72.4 |
+| + global V1, w 1.0 | 93.9 / 0.8 / 43.4 | 78.4 / 14.1 / 73.6 |
+| + global V1, 3×3 grid | 94.8 / 1.0 / 48.0 | 77.1 / 16.3 / 76.0 |
+
+Concatenating a coarse "right hemisphere" into IT does not help MNIST few-shot. It raises Fashion forgetting: pullover, coat and shirt share a silhouette and differ in local detail, so global features make them more alike. The hypothesis "the look-alikes differ in global shape" was wrong for Fashion and gave no gain for MNIST.
+
+What is still open: the brain does not simply concatenate hemispheres. Options are separate IT populations per hemisphere that vote, with a thalamus-like gate that learns which stream separates which classes (file 06), and top-down selection of the useful stream (file 05).
+
 ## Status
-It 10 grid running (val, seed 0): hemi_w 1.0 / 0.5, global grid 2 / 3. Results go in `goal.md` §10.
+Rejected as concatenation (It 10). Separate streams with a learned gate remain an option (backlog).
