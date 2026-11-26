@@ -1,6 +1,6 @@
 # goal.md — Build an architecture that learns like a real brain
 
-> Status (2026-11-26): loop run It 0–12. Last full test bench (It 9 config, 3 seeds): MNIST 94.7 / FGT 0.9, Fashion 80.8 / FGT 10.9; all SHOULDs pass; MUST gaps: MNIST few-shot, few-shot old-class drop, Fashion FGT 0.9 over. It 12 (rethink loop) test bench running. Details: ARCHITECTURE.md, docs/iteration-log.md.
+> Status (2026-11-26): loop run It 0–12 (stop rule reached). Final SPARC (It 12, test, 3 seeds): MNIST 94.4 ACC / FGT 0.9, Fashion 80.5 / FGT 10.4; all SHOULDs pass; MUST gaps: MNIST few-shot (42.7 vs 70), Fashion FGT (10.4 vs 10), Fashion few-shot old-class drop (2.8 vs 2). Details: ARCHITECTURE.md, docs/iteration-log.md.
 
 ## 1. Why
 Today's LLMs and deep nets learn in ways no brain does.
