@@ -41,7 +41,8 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.0, ie_tau=2000.0, cls_gate=0.0):
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0,
+                 kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
         self.center, self.refine, self.adapt_z, self.adapt_tau = center, refine, adapt_z, adapt_tau
@@ -54,6 +55,12 @@ class SPARC:
         # intrinsic excitability: newborn units start hyperexcitable; homeostasis pulls each unit's
         # recent win rate r_i toward the population target k/used (Turrigiano-style intrinsic plasticity)
         self.ie_gamma, self.ie_tau = ie_gamma, ie_tau
+        # mushroom-body pathway: fixed random sparse wiring V1 -> Kenyon cells (innate), k-WTA,
+        # fly-style readout (only the labelled class's synapses from active KCs change)
+        self.kc_n, self.kc_k, self.kc_beta = kc_n, kc_k, kc_beta
+        if kc_n:
+            self.kc_in = self.rng.randint(0, self.D, size=(kc_n, kc_fan))
+            self.B = np.zeros((self.C, kc_n), np.float32)
         self.cls_gate = cls_gate   # CLS: slow readout trusted per class only as far as it is consolidated
         self.r = np.zeros(self.N)
         self.used = 0                        # units recruited so far (budget = N)
@@ -113,6 +120,18 @@ class SPARC:
         np.put_along_axis(H, idx, np.maximum(vals, 0), 1)
         return H
 
+    def _kc(self, X):
+        """V1 code -> Kenyon-cell code: each KC sums kc_fan random inputs; top kc_k fire (binary)."""
+        F = np.asarray(X, np.float32)
+        if self.v1 is not None:
+            F = self.v1.encode(F)
+        F = _unit(F)
+        Z = F[:, self.kc_in].sum(-1)
+        idx = np.argpartition(-Z, self.kc_k - 1, axis=1)[:, :self.kc_k]
+        K = np.zeros((len(F), self.kc_n), np.float32)
+        np.put_along_axis(K, idx, 1.0, 1)
+        return K
+
     def encode(self, X):
         x = self._pre(X)
         a = x @ self.W[:self.used].T
@@ -168,6 +187,9 @@ class SPARC:
         if self.ie_gamma > 0 and self.used:
             win = self._code(a[None])[0][:self.used] > 0
             self.r[:self.used] += (win - self.r[:self.used]) / self.ie_tau
+        if c is not None and self.kc_n:
+            kc = self._kc(X)[0]
+            self.B[c] += (kc - self.B[c]) / (self.nc[c] + 1)   # nc[c] incremented just below
         if c is not None:
             h = self._code(a[None])[0]
             if self.lab_tau > 0:
@@ -353,7 +375,15 @@ class SPARC:
         allowed = np.asarray(allowed)
         Hn = _unit(H)
         pf = _softmax(self.beta * (Hn @ _unit(self.A[allowed]).T))
+        pk = None
+        if self.kc_n:
+            pk = _softmax(self.kc_beta * (_unit(self._kc(X)) @ _unit(self.B[allowed]).T))
+            if self.mix == 'kc':
+                return pk
         if not self.slept or self.mix == 'fast':
+            if pk is not None:
+                wf, wk = pf.max(1, keepdims=True), pk.max(1, keepdims=True)
+                return (wf * pf + wk * pk) / (wf + wk)
             return pf
         ps = _softmax(Hn @ self.R[allowed].T)
         if self.mix == 'slow':
@@ -366,6 +396,9 @@ class SPARC:
                 ws = ws * g[pf.argmax(1)][:, None]             # fast guess unconsolidated -> cortex defers
             if self.arbitrate:  # arbitration by uncertainty (Daw et al. 2005)
                 ws = ws * (1.0 - self.U[allowed][ps.argmax(1)])[:, None]
+            if pk is not None:
+                wk = pk.max(1, keepdims=True)
+                return (wf * pf + ws * ps + wk * pk) / (wf + ws + wk)
             return (wf * pf + ws * ps) / (wf + ws)
         lam = float(self.mix)
         return (1 - lam) * pf + lam * ps
@@ -386,7 +419,7 @@ class SPARC:
         return out
 
     def stats(self):
-        p = self.W.size + self.A.size + self.R.size + (self.v1.D.size if self.v1 is not None else 0)
+        p = self.W.size + self.A.size + self.R.size + (self.B.size + self.kc_in.size if self.kc_n else 0) + (self.v1.D.size if self.v1 is not None else 0)
         hip = self.M * (2 * self.k + 1)
         return dict(params=int(p), stored_numbers=int(hip), raw_images_stored=0,
                     hippocampus_budget=f'{self.M} codes x (2*{self.k}+1) = {hip} numbers '
