@@ -26,3 +26,4 @@ New senses (e.g. spoken digits bound to the same IT/hippocampal codes as images)
 - New mechanisms go behind a flag that is off by default until adopted.
 - One writer per file: only the main session edits goal.md, docs/rules.md, docs/iteration-log.md and merges into sparc.py.
 - Commit after every iteration (message = the log line).
+- **Push and merge to `main` every time a full task or key piece of work is complete** (user directive, 2026-11-26): push the working branch, then fast-forward `main` to it (`git push origin HEAD:main`). Work in progress stays on the working branch. If `main` has moved, merge it into the branch first; never force-push `main`.

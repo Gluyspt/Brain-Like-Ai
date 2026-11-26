@@ -7,3 +7,4 @@
 - **Brain-first rule.** Every change to the model or its training must be justified as something a real brain does (name the mechanism). A change that only raises an accuracy number, with no brain analogue, does not belong in this project, even if it scores better. When a brain-like and a score-only option compete, pick the brain-like one and log the cost.
 - Background research: research/ (one .md per brain system; index in research/README.md). Name the file a mechanism comes from when logging it.
 - Keep the work clean: goal.md holds only the goal; findings go in research/, rules and protocols in docs/, run lists in runs/, helper scripts in tools/, outputs in results/.
+- Git: commit on the working branch; when a full task or key piece of work is complete, push it and fast-forward `main` to it (docs/rules.md). Never force-push `main`.
