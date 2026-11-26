@@ -96,6 +96,7 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--split', default='val', choices=['val', 'test'])
     ap.add_argument('--quick', action='store_true', help='cap train at 1000 samples per class')
+    ap.add_argument('--cap', type=int, default=None, help='cap train at N samples per class (data-scaling runs)')
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
     ap.add_argument('--tag', default='')
     ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev')
@@ -106,9 +107,9 @@ def main():
     overrides = {k: parse_val(v) for k, v in overrides.items()}
     np.random.seed(a.seed)
     Xtr, ytr, Xev, yev = load(a.data, a.split)
-    cap = 1000 if a.quick else None
+    cap = a.cap if a.cap else (1000 if a.quick else None)
     parts = a.only.split(',')
-    res = dict(model=a.model, data=a.data, seed=a.seed, split=a.split, quick=a.quick,
+    res = dict(model=a.model, data=a.data, seed=a.seed, split=a.split, quick=a.quick, cap=cap,
                overrides=overrides, tag=a.tag)
     T0 = time.time()
     all_cls = list(range(10))
@@ -229,7 +230,7 @@ def main():
 
     res['wall_clock_s'] = time.time() - T0
     os.makedirs(a.out, exist_ok=True)
-    name = a.model + (f'_{a.tag}' if a.tag else '') + f'_{a.data}_{a.seed}_{a.split}' + ('_quick' if a.quick else '')
+    name = a.model + (f'_{a.tag}' if a.tag else '') + f'_{a.data}_{a.seed}_{a.split}' + (f'_cap{a.cap}' if a.cap else ('_quick' if a.quick else ''))
     path = os.path.join(a.out, name + '.json')
     with open(path, 'w') as f:
         json.dump(res, f, indent=1)

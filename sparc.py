@@ -38,7 +38,7 @@ class SPARC:
                  hemi=False, hemi_grid=2, hemi_w=1.0,
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
-                 it_lvq=0.0,
+                 it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -66,6 +66,10 @@ class SPARC:
         # error-driven IT tuning (category learning reshapes IT selectivity; dopamine-gated LTP/LTD):
         # on a wrong prediction, active units voting for a wrong class move away from the input
         self.it_lvq = it_lvq
+        # eye movements: each image is seen as a few shifted glimpses in a row (saccade-like); a trace rule
+        # (Foldiak 1991) pulls the previous glimpse's winners toward the current view -> shift invariance
+        self.glimpses, self.glimpse_shift, self.trace_w = glimpses, glimpse_shift, trace_w
+        self._trace = None
         self.n_lvq = 0
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
         # IT prototype layer (adaptive resonance)
@@ -113,6 +117,7 @@ class SPARC:
     def _build(self, dim):
         """Sensory geometry from the input width: 784 = 28x28 grey, 3072 = 32x32x3 colour (HWC)."""
         side, ch = {784: (28, 1), 3072: (32, 3)}[dim]
+        self._geom = (side, ch)
         c = self._v1cfg
         self.v1 = None if c['v1'] == 'none' else V1(self.rng, K=c['v1_K'], k=c['v1_k'], grid=c['v1_grid'],
                                                       mode=c['v1'], eta_min=c['v1_eta_min'], img_side=side, img_ch=ch)
@@ -188,9 +193,30 @@ class SPARC:
         return self._code(a), a
 
     # ---------- learning (awake) ----------
+    def _shift(self, X):
+        side, ch = self._geom
+        I = np.asarray(X, np.float32).reshape(side, side, ch)
+        dx, dy = self.rng.randint(-self.glimpse_shift, self.glimpse_shift + 1, size=2)
+        J = np.zeros_like(I)
+        ys, yd = (slice(max(0, -dy), side - max(0, dy)), slice(max(0, dy), side - max(0, -dy)))
+        xs, xd = (slice(max(0, -dx), side - max(0, dx)), slice(max(0, dx), side - max(0, -dx)))
+        J[yd, xd] = I[ys, xs]
+        return J.reshape(1, -1)
+
     def learn(self, X, y=None):
         if self.D is None:
             self._build(np.asarray(X).shape[1])
+        self._trace = None
+        if self.glimpses <= 1:
+            return self._learn_view(X, y, first=True)
+        X = np.asarray(X, np.float32)
+        views = [self._shift(X) for _ in range(self.glimpses - 1)] + [X]   # glimpses, then the fixated view
+        for g, V in enumerate(views):
+            last = g == len(views) - 1
+            self._learn_view(V, y if last else None, first=(g == 0))  # label binds once, to the fixated view
+        self._trace = None
+
+    def _learn_view(self, X, y=None, first=True):
         if self.v1 is not None and (self.v1_cp == 0 or self.n_seen < self.v1_cp):
             self.v1.learn(np.asarray(X, np.float32)[0])
             if self.v1b is not None:
@@ -198,7 +224,8 @@ class SPARC:
         if self.v2 is not None and (self.v2_cp == 0 or self.n_seen < self.v2_cp):
             self.v2.learn(np.asarray(X, np.float32)[0])
         x = self._pre(X)[0]
-        self.n_seen += 1
+        if first:
+            self.n_seen += 1
         u = self.used
         a = self.W[:u] @ x if u else np.zeros(0, np.float32)
         best = a.max() if u else -1.0
@@ -222,6 +249,8 @@ class SPARC:
                 pred = seen[np.argmax(_unit(self.A[seen]) @ h0)]
                 novel = pred != c
             self.n_mt += int(novel)
+        if self._trace is not None:
+            novel = False      # later glimpse of the same object: continuity suppresses novelty
         if novel and self.used < self.N:
             # mismatch -> recruit a fresh unit, one-shot imprint
             j = self.used
@@ -250,6 +279,10 @@ class SPARC:
                     self.n_lvq += 1
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
+            if self._trace is not None and self.trace_w > 0:
+                T = self._trace[self._trace < self.used]
+                gt = (self.trace_w / (1.0 + self.n[T]))[:, None]
+                self.W[T] = _unit(self.W[T] + gt * (x[None] - self.W[T]))   # trace rule: bind views together
             a = self.W[:self.used] @ x
         if self.ie_gamma > 0 and self.used:
             win = self._code(a[None])[0][:self.used] > 0
@@ -272,8 +305,12 @@ class SPARC:
                 p = 1.0 / (1.0 + np.exp(-self.hip_gain * z))   # novelty-gated memory write
                 if self.rng.rand() < p:
                     self._hip_write(h, c)
+        if self.glimpses > 1 and self.used:
+            k = min(self.k, self.used)
+            self._trace = np.argpartition(-a, k - 1)[:k]        # winners carry over to the next glimpse
         if self.used == self.N and self.merge_frac > 0:     # sleep pressure: budget full
             self.consolidate()
+            self._trace = None
 
     def _confident_error(self, h, c):
         """Three-factor correction. A confident wrong prediction releases an error modulator M (NE/DA-like):

@@ -1,0 +1,6 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_3_g3t05 --set glimpses=3 trace_w=0.5 > logs/r2_3_g3t05_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data mnist --tag r2_3_g3t0 --set glimpses=3 trace_w=0.0 > logs/r2_3_g3t0_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_3_g3t05 --set glimpses=3 trace_w=0.5 > logs/r2_3_g3t05_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data fashion --tag r2_3_g3t0 --set glimpses=3 trace_w=0.0 > logs/r2_3_g3t0_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_3_g3t05 --set glimpses=3 trace_w=0.5 > logs/r2_3_g3t05_cifar10.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --quick --only main,few --data cifar10 --tag r2_3_g3t0 --set glimpses=3 trace_w=0.0 > logs/r2_3_g3t0_cifar10.log 2>&1
