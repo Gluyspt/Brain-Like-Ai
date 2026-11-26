@@ -1,0 +1,8 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model sparc --data mnist --tag r2_life > logs/r2_life_sparc_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model sparc --data mnist --tag r2_life_g3 --set glimpses=3 trace_w=0.5 > logs/r2_life_g3_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model b2 --data mnist --tag r2_life > logs/r2_life_b2_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model b5 --data mnist --tag r2_life > logs/r2_life_b5_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model sparc --data fashion --tag r2_life > logs/r2_life_sparc_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model sparc --data fashion --tag r2_life_g3 --set glimpses=3 trace_w=0.5 > logs/r2_life_g3_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model b2 --data fashion --tag r2_life > logs/r2_life_b2_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --seed 0 --split val --only life --model b5 --data fashion --tag r2_life > logs/r2_life_b5_fashion.log 2>&1

@@ -99,7 +99,7 @@ def main():
     ap.add_argument('--cap', type=int, default=None, help='cap train at N samples per class (data-scaling runs)')
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
     ap.add_argument('--tag', default='')
-    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev')
+    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life')
     ap.add_argument('--out', default='results')
     a = ap.parse_args()
 
@@ -227,6 +227,83 @@ def main():
         res['NOISE_acc'], res['NOISE_clean_acc'] = out[True], out[False]
         res['NOISE_gap'] = out[False] - out[True]
         print(f"  NOISE acc={out[True]:.4f} clean={out[False]:.4f} gap={res['NOISE_gap']:.4f}", flush=True)
+
+    # ---- lifelike memory: reminders and savings (research/15) ----
+    if 'life' in parts and a.model != 'b3':
+        print('[life: reminders / savings]', flush=True)
+        # per class: first 90 % = stream, last 10 % = reserve (half for reminders, half for relearning)
+        stream_c, remind_c, relearn_c = {}, {}, {}
+        for c in all_cls:
+            ic = task_indices(ytr, [c], cap)
+            k = int(0.9 * len(ic)); h = (len(ic) - k) // 2
+            stream_c[c], remind_c[c], relearn_c[c] = ic[:k], ic[k:k + h], ic[k + h:]
+        rng = np.random.RandomState(a.seed + 400)
+        p_rem = 0.02
+        # (a) REMIND: while learning task t, ~2 % of the stream are labelled reminders of earlier classes
+        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
+        seen, ptr, n_rem = [], {c: 0 for c in all_cls}, 0
+        accm = np.full((5, 5), np.nan)
+        for t, task in enumerate(TASKS):
+            idx = np.sort(np.concatenate([stream_c[c] for c in task]))
+            seq = []
+            for i in idx:
+                seq.append(i)
+                if seen and rng.rand() < p_rem:
+                    c = seen[rng.randint(len(seen))]
+                    if ptr[c] < len(remind_c[c]):
+                        seq.append(remind_c[c][ptr[c]]); ptr[c] += 1; n_rem += 1
+            feed(model, Xtr, ytr, np.array(seq))
+            model.end_task()
+            seen += list(task)
+            for j in range(t + 1):
+                accm[t, j] = acc_on(model, Xev, yev, TASKS[j], seen)
+        res['REMIND_ACC'] = acc_on(model, Xev, yev, all_cls, all_cls)
+        res['REMIND_FGT'] = float(np.mean([np.nanmax(accm[j:, j]) - accm[-1, j] for j in range(4)]))
+        res['REMIND_n'] = n_rem
+        print(f"  REMIND ACC={res['REMIND_ACC']:.4f} FGT={res['REMIND_FGT']:.4f} ({n_rem} reminders)", flush=True)
+        # (b) SAVINGS: plain stream (no reminders), record first-learning curves on a 200-image probe per
+        # task; then relearn the most-forgotten old task from fresh samples and compare the speed
+        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
+        prng = np.random.RandomState(a.seed + 500)
+        probe = {t: prng.choice(np.where(np.isin(yev, task))[0], 200, replace=False) for t, task in enumerate(TASKS)}
+        def pacc(t, allowed):
+            pi = probe[t]
+            return float((model.predict(Xev[pi], list(allowed)) == yev[pi]).mean())
+        seen, curves, peak = [], {}, {}
+        for t, task in enumerate(TASKS):
+            idx = np.sort(np.concatenate([stream_c[c] for c in task]))
+            allowed = seen + list(task)
+            curve = []
+            for s in range(0, len(idx), 50):
+                feed(model, Xtr, ytr, idx[s:s + 50])
+                if t < 4:
+                    curve.append((s + len(idx[s:s + 50]), pacc(t, allowed)))
+            model.end_task()
+            seen += list(task)
+            if t < 4:
+                curves[t] = curve
+                peak[t] = pacc(t, seen)
+        final = {t: pacc(t, all_cls) for t in range(4)}
+        jt = max(range(4), key=lambda t: peak[t] - final[t])
+        thr = 0.95 * peak[jt]
+        n_first = next((n for n, v in curves[jt] if v >= thr), None)
+        others = [c for c in all_cls if c not in TASKS[jt]]
+        other_before = acc_on(model, Xev, yev, others, all_cls)
+        ridx = np.sort(np.concatenate([relearn_c[c] for c in TASKS[jt]]))
+        n_re, rcurve = None, []
+        for s in range(0, len(ridx), 10):
+            feed(model, Xtr, ytr, ridx[s:s + 10])
+            v = pacc(jt, all_cls)
+            rcurve.append((s + len(ridx[s:s + 10]), v))
+            if n_re is None and v >= thr:
+                n_re = s + len(ridx[s:s + 10])
+        res.update(SAV_task=list(TASKS[jt]), SAV_peak=peak[jt], SAV_forgotten_to=final[jt],
+                   SAV_n_first=n_first, SAV_n_relearn=n_re, SAV_relearned_to=rcurve[-1][1] if rcurve else None,
+                   SAV_ratio=(n_first / n_re) if (n_first and n_re) else None,
+                   SAV_other_drop=other_before - acc_on(model, Xev, yev, others, all_cls), SAV_curve=rcurve)
+        print(f"  SAVINGS task {TASKS[jt]}: peak {peak[jt]:.3f} -> forgotten {final[jt]:.3f}; first learning "
+              f"{n_first} ex to 95 % of peak, relearning {n_re} ex (of {len(ridx)}), ratio {res['SAV_ratio']}, "
+              f"other drop {res['SAV_other_drop']:.4f}", flush=True)
 
     res['wall_clock_s'] = time.time() - T0
     os.makedirs(a.out, exist_ok=True)

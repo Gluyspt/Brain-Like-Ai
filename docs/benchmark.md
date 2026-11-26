@@ -18,3 +18,7 @@
 - **B4** nearest class mean on raw pixels (no feature learning).
 
 Rough sanity ranges from memory, verify before trusting: B1 ≈ 20 % ACC (only the last task's classes get predicted); B3 ≈ 98 % MNIST / ≈ 89 % Fashion; B4 ≈ 82 % MNIST.
+- **LIFE** (`--only life`, research/15), lifelike memory. Each class's train images split 90 % stream / 5 % reminders / 5 % relearning (never reused).
+  - **REMIND**: the 5-task stream with ~2 % labelled reminders of earlier classes inserted at random; report REMIND_ACC and REMIND_FGT.
+  - **SAVINGS**: plain stream; first-learning curves on a 200-image probe per task (every 50 samples). Afterwards pick the most-forgotten task among 1–4, relearn it from its relearning images (batch-size steps, probe every 10). Report SAV_n_first and SAV_n_relearn (examples to reach 95 % of the task's old peak), SAV_ratio = first / relearn (> 1 means savings), SAV_relearned_to and SAV_other_drop.
+
