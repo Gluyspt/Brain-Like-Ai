@@ -39,7 +39,7 @@ class SPARC:
                  rethink=0.1, conflict=0.5,
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=1, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
-                 epi=0.0, epi_beta=20.0, epi_gate=0.0,
+                 epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -77,6 +77,9 @@ class SPARC:
         # completion); the best-matching episode of each class gives a third vote (research/16)
         self.epi, self.epi_beta = epi, epi_beta
         self.epi_gate = epi_gate   # >0: recall only for classes with < epi_gate traces (not yet consolidated)
+        # recall vs familiarity: the episodic vote counts only when the best recent-episode match comes
+        # within epi_margin of the best match among consolidated memories (soft, temperature epi_temp)
+        self.epi_margin, self.epi_temp = epi_margin, epi_temp
         self._trace = None
         self.n_lvq = 0
         self.D = None        # input geometry is taken from the first sample (28x28 grey or 32x32 colour)
@@ -523,21 +526,29 @@ class SPARC:
         lab = self.h_lab[:n]
         Hn = _unit(H)
         out = np.full((len(H), len(allowed)), -1.0, np.float32)
+        fam = np.full(len(H), -1.0, np.float32)                     # best match among consolidated memories
         for s0 in range(0, len(H), chunk):
             S = Hn[s0:s0 + chunk] @ Hs                              # (b, n) cue-trace similarity
             for j, c in enumerate(allowed):
                 m = lab == c
                 if self.epi_gate > 0 and m.sum() >= self.epi_gate:
+                    if m.any():
+                        fam[s0:s0 + chunk] = np.maximum(fam[s0:s0 + chunk], S[:, m].max(1))
                     continue                                        # consolidated: cortex answers
                 if m.any():
                     out[s0:s0 + chunk, j] = S[:, m].max(1)
-        return _softmax(self.epi_beta * out)
+        pe = _softmax(self.epi_beta * out)
+        if self.epi_margin is None:
+            return pe, np.ones(len(H), np.float32)
+        # recall wins only when it is about as strong as long-term familiarity
+        g = 1.0 / (1.0 + np.exp(-(out.max(1) - fam + self.epi_margin) / self.epi_temp))
+        return pe, g
 
     def _probs(self, H, X, allowed):
         p = self._probs_base(H, X, allowed)
         if self.epi > 0 and self.h_n > 0:
-            pe = self._episodic(H, allowed)
-            we = self.epi * pe.max(1, keepdims=True)
+            pe, g = self._episodic(H, allowed)
+            we = self.epi * pe.max(1, keepdims=True) * g[:, None]
             p = (p + we * pe) / (1.0 + we)
         return p
 
