@@ -297,7 +297,10 @@ def main():
             rcurve.append((s + len(ridx[s:s + 10]), v))
             if n_re is None and v >= thr:
                 n_re = s + len(ridx[s:s + 10])
-        if hasattr(model, 'mix'):   # which readout blocks recovery? (diagnostic)
+        model.end_task()             # a night's sleep after relearning: consolidation into the slow readout
+        res['SAV_after_sleep'] = pacc(jt, all_cls)
+        res['SAV_other_drop_after_sleep'] = other_before - acc_on(model, Xev, yev, others, all_cls)
+        if hasattr(model, 'mix'):   # which readout blocks recovery? (diagnostic, after sleep)
             pi = probe[jt]; old_mix = model.mix
             for mx in ('fast', 'slow'):
                 model.mix = mx
@@ -310,7 +313,7 @@ def main():
                    SAV_other_drop=other_before - acc_on(model, Xev, yev, others, all_cls), SAV_curve=rcurve)
         print(f"  SAVINGS task {TASKS[jt]}: peak {peak[jt]:.3f} -> forgotten {final[jt]:.3f}; first learning "
               f"{n_first} ex to 95 % of peak, relearning {n_re} ex (of {len(ridx)}), ratio {res['SAV_ratio']}, "
-              f"other drop {res['SAV_other_drop']:.4f}", flush=True)
+              f"other drop {res['SAV_other_drop']:.4f}; after sleep {res['SAV_after_sleep']:.3f}", flush=True)
 
     res['wall_clock_s'] = time.time() - T0
     os.makedirs(a.out, exist_ok=True)

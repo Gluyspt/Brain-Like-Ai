@@ -1,0 +1,4 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data fashion --only life --tag r2_4s_base > logs/r2_4s_base.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data fashion --only life --tag r2_4s_rr --set retrieval_reopen=True > logs/r2_4s_rr.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data fashion --only life --tag r2_4s_rr_epi --set retrieval_reopen=True epi=1.0 > logs/r2_4s_rr_epi.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data fashion --only life --tag r2_4s_epi --set epi=1.0 > logs/r2_4s_epi.log 2>&1
