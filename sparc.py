@@ -313,7 +313,7 @@ class SPARC:
             self.n[win] += 1
             if self._trace is not None and self.trace_w > 0:
                 T = self._trace[self._trace < self.used]
-                if self.refine_gate and cg is not None:
+                if self.refine_gate and self.gate_glimpses and cg is not None:
                     At = self.A[:, T]
                     tl = np.where(At.max(0) > 0, At.argmax(0), -1)
                     T = T[(tl == cg) | (tl < 0)]
