@@ -1,0 +1,6 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python seqbench.py --model sparc_ctx --split val --steps 3000 --seed 0 --tag s2_6 --set nz=2000 eta_min=0.02 min_age=200 > logs/s2_6_0.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model ngram2 --split val --seed 0 > logs/s2_6_ngram2_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python seqbench.py --model sparc_ctx --split val --steps 3000 --seed 1 --tag s2_6 --set nz=2000 eta_min=0.02 min_age=200 > logs/s2_6_1.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model ngram2 --split val --seed 1 > logs/s2_6_ngram2_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python seqbench.py --model sparc_ctx --split val --steps 3000 --seed 2 --tag s2_6 --set nz=2000 eta_min=0.02 min_age=200 > logs/s2_6_2.log 2>&1
+OMP_NUM_THREADS=1 python seqbench.py --model ngram2 --split val --seed 2 > logs/s2_6_ngram2_2.log 2>&1

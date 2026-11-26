@@ -168,31 +168,34 @@ def main():
             neg += list(surp[2:][~dev[2:]][3:]); pos += list(surp[2:][dev[2:]])
         ret[w] = float(np.nanmean(accs))
         viol[w] = auroc(np.array(neg), np.array(pos)) if pos else None
-        # 3) completion: given 2 items, roll out 8 predicted classes (feeding back the model's own prediction)
-        cacc = []
-        for _ in range(20):
-            seq, _ = gen(w, 10, erng)
+        # 3) completion: given g items (g = 2: world often ambiguous; g = 5: world identifiable), roll out
+        #    8 predicted classes, feeding back an image of the model's own prediction (imagination)
+        for g in (2, 5):
+          cacc = []
+          for _ in range(20):
+            seq, _ = gen(w, g + 8, erng)
             model.reset_context()
-            for t in range(2):
+            for t in range(g):
                 model.observe_frozen(eval_pool.draw(int(seq[t])), int(seq[t])) if hasattr(model, 'observe_frozen') else model.observe(eval_pool.draw(int(seq[t])), int(seq[t]))
             correct = 0
-            for t in range(2, 10):
+            for t in range(g, g + 8):
                 pred = int(np.argmax(model.predict_next()))
                 correct += pred == seq[t]
                 x = eval_pool.draw(pred)                     # imagine the predicted item
                 model.observe_frozen(x, pred) if hasattr(model, 'observe_frozen') else model.observe(x, pred)
             cacc.append(correct / 8)
-        comp[w] = float(np.mean(cacc))
-        print(f'  test {w}: retention {ret[w]:.3f}  violation AUROC {viol[w]}  completion {comp[w]:.3f}', flush=True)
+          comp[w if g == 2 else w + '_from5'] = float(np.mean(cacc))
+        print(f'  test {w}: retention {ret[w]:.3f}  violation AUROC {viol[w]}  completion {comp[w]:.3f} / from 5 items {comp[w + "_from5"]:.3f}', flush=True)
     res.update(retention=ret, violation_auroc=viol, completion=comp,
                mean_online=float(np.mean(list(online.values()))), mean_retention=float(np.mean(list(ret.values()))),
                mean_violation=float(np.mean([v for v in viol.values() if v is not None])),
-               mean_completion=float(np.mean(list(comp.values()))), wall_clock_s=time.time() - T0)
+               mean_completion=float(np.mean([comp[w] for w in names])),
+               mean_completion5=float(np.mean([comp[w + '_from5'] for w in names])), wall_clock_s=time.time() - T0)
     os.makedirs(a.out, exist_ok=True)
     path = os.path.join(a.out, f"seq_{a.model}{'_' + a.tag if a.tag else ''}_{a.seed}_{a.split}.json")
     json.dump(res, open(path, 'w'), indent=1)
     print(f"mean: online {res['mean_online']:.3f} retention {res['mean_retention']:.3f} "
-          f"violation {res['mean_violation']:.3f} completion {res['mean_completion']:.3f}  wrote {path}")
+          f"violation {res['mean_violation']:.3f} completion {res['mean_completion']:.3f} / from 5 {res['mean_completion5']:.3f}  wrote {path}")
 
 
 if __name__ == '__main__':
