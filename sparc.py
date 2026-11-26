@@ -35,7 +35,7 @@ class SPARC:
                  # V1
                  v1='learned', v1_K=64, v1_k=3, v1_grid=4, v1_eta_min=0.002, v1_cp=12000,
                  hemi=False, hemi_grid=2, hemi_w=1.0,
-                 rethink=0.0, conflict=0.3,
+                 rethink=0.1, conflict=0.5,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)

@@ -34,5 +34,8 @@ The feedback reuses the readout weights in reverse. This is inference-time atten
 
 Conflict monitoring by the anterior cingulate: Botvinick et al. 2001, *Psych Review* [known].
 
+## Result (It 12, val, seed 0) — adopted
+The second look lowers the few-shot old-class drop (MNIST 2.0 → 1.7, Fashion 2.2 → 1.8) and Fashion forgetting (10.8 → 9.9), at a cost of 0.2 pts ACC. It does not raise MNIST few-shot accuracy (49.2 → 47.7). The conflict detector fires on 13 % of MNIST and 50 % of Fashion test images.
+
 ## Status
-It 12 grid running (val, seed 0): rethink 0.03 / 0.1 / 0.3, conflict 0.3 / 0.5.
+Adopted: rethink 0.1, conflict 0.5. Not yet tried: predictive-coding feedback to V1, and using the rethink loop during learning (for match tracking).
