@@ -279,7 +279,7 @@ class SPARC:
             logit = self.R[classes][:, idx] @ val
             p = _softmax(logit)
             err = (classes == c).astype(np.float32) - p
-            self.R[np.ix_(classes, idx)] += self.sleep_eta * err[:, None] * val[None]
+            np.add.at(self.R, (classes[:, None], idx[None, :]), self.sleep_eta * err[:, None] * val[None])  # duplicates accumulate
         if self.downscale > 0:
             self.R *= (1.0 - self.downscale)
         self.slept = True
