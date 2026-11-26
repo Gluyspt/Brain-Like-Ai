@@ -51,6 +51,17 @@ Scope: the learning machinery, tested at small scale (image streams). Language s
 | **Dragon Hatchling, BDH** (Pathway, Sep 2025) | LLM built from locally interacting neurons; working memory during inference relies on Hebbian synaptic plasticity; authors report GPT-2-level results at 10M–1B parameters. | Evidence that Hebbian fast weights can work at language scale (roadmap) |
 | **Hebbian learning with global direction** (Jan 2026) | Oja's rule + competitive learning, steered by a neuromodulator-like global signal. | Three-factor rule: local Hebbian term × global scalar |
 
+**Research scan 2 (2026-11-26, user request: "the brain has many parts that boost each other")**
+
+| Finding | Evidence | Use in SPARC |
+|---|---|---|
+| "Left-brained vs right-brained people" is a myth; lateralization is local to networks (left: language/default mode, right: attention) | Nielsen et al. 2013, PLOS ONE, 1,011 resting-state scans (https://pubmed.ncbi.nlm.nih.gov/23967180/) | do not model whole-brain dominance |
+| Visual hemispheres differ: right = global shape / low spatial frequency, left = local detail / high frequency; lesions show the matching deficits | Robertson & Ivry 2000 (https://ivrylab.berkeley.edu/files/organized_pubs_pdfs/2000_robertson_ivrycurrent_dir.pdf); Sergent 1982; review (https://ane.pl/index.php/ane/article/download/1151/1151) | **It 10**: two V1 "hemispheres" (fine local vs coarse global), combined at IT (callosal integration). Targets look-alike classes that differ in global shape (8 vs 3, pullover vs coat) |
+| Prefrontal cortex keeps goal patterns active and sends top-down bias signals that favour task-relevant features in visual cortex | Miller & Cohen 2001 (https://pubmed.ncbi.nlm.nih.gov/11283309/); Gazzaley et al. 2007 | **It 11 candidate**: top-down bias on IT competition from the currently confusable classes (SPARC is feed-forward today) |
+| Pulvinar (thalamus) regulates which cortical areas communicate, by attention (alpha synchrony) | Saalmann et al. 2012, Science (https://pmc.ncbi.nlm.nih.gov/articles/PMC3714098) | already partly: arbitration between fast and slow readouts |
+| Basal ganglia gate what enters / leaves prefrontal working memory; gating learned by dopamine | PBWM, Hazy, Frank & O'Reilly 2006 (https://pubmed.ncbi.nlm.nih.gov/16343792/) | roadmap §11.3: learned (reward) gating of hippocampal writes |
+| Cortex / basal ganglia / cerebellum specialise in unsupervised / reinforcement / supervised learning (contested: they overlap) | Doya 1999 (https://web.math.princeton.edu/~sswang/developmental-diaschisis-references/doya00_neural-networks.pdf); consensus paper 2016 (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5243918/) | SPARC has the cortical and supervised parts; reinforcement missing (§11.3) |
+
 **Takeaways that drive the design**
 1. Forgetting is mostly **interference**. Sparse, high-dimensional codes plus updating only active synapses removes most of it (fly).
 2. **Recruit new units for novel input; refine old units only on a good match** (ART). Stability without freezing everything.

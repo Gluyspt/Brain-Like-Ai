@@ -24,10 +24,13 @@ def gabor_bank(K=64, p=5, seed=0):
 
 class V1:
     def __init__(self, rng, K=64, p=5, k=3, grid=3, mode='learned', rho1=0.5, eta_min=0.002,
-                 n_patch=10, contrast=0.1):
+                 n_patch=10, contrast=0.1, lowsf=False):
         self.rng, self.K, self.p, self.k, self.grid, self.mode = rng, K, p, k, grid, mode
         self.rho1, self.eta_min, self.n_patch, self.contrast = rho1, eta_min, n_patch, contrast
-        self.S = 28 - p + 1
+        self.lowsf = lowsf          # low spatial frequency 'hemisphere': sees a 2x2-averaged 14x14 image
+        side = 14 if lowsf else 28
+        self.side = side
+        self.S = side - p + 1
         if mode == 'gabor':
             self.D = gabor_bank(K, p)
             self.used = K
@@ -43,6 +46,8 @@ class V1:
     def _patches(self, X):
         """X (n,784) -> normalised patches (n, S*S, p*p) and contrast mask."""
         I = X.reshape(-1, 28, 28)
+        if self.lowsf:
+            I = I.reshape(-1, 14, 2, 14, 2).mean((2, 4))
         P = sliding_window_view(I, (self.p, self.p), axis=(1, 2)).reshape(len(X), self.S * self.S, -1)
         P = P - P.mean(-1, keepdims=True)
         nrm = np.linalg.norm(P, axis=-1, keepdims=True)
