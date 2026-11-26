@@ -40,7 +40,7 @@ class SPARC:
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=3, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
-                 engram_tag=False, syn_meta=False,
+                 engram_tag=False, syn_meta=False, refine_gate=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -100,6 +100,10 @@ class SPARC:
         # engram tag: consolidation merges units only within the memory they were formed for, so a fading
         # memory's units are never absorbed by a look-alike class (silent engram kept for reactivation)
         self.engram_tag = engram_tag
+        # label-gated refinement: with a teaching signal, only winners of that class (or of no class yet)
+        # move toward the input; look-alike units of other classes are not pulled (task-relevant gating
+        # of IT plasticity, Sigala & Logothetis 2002). Unlabelled inputs refine all winners as before.
+        self.refine_gate = refine_gate
         self.used = 0                        # units recruited so far (budget = N)
         self.s_mu, self.s_var = 0.2, 0.01    # running surprise statistics (neuromodulator baseline)
         # fast readout: per-class running mean of sparse codes (only row c changes)
@@ -297,6 +301,10 @@ class SPARC:
             # resonance -> refine top-k winners, rate from own usage
             k = min(self.k, u)
             win = np.argpartition(-a, k - 1)[:k]
+            if self.refine_gate and c is not None:
+                Aw = self.A[:, win]
+                wl = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
+                win = win[(wl == c) | (wl < 0)]
             eta = 1.0 / (1.0 + self.n[win])
             g = (eta * np.maximum(a[win], 0))[:, None]
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))

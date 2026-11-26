@@ -1,0 +1,4 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data fashion --only main,few,life --tag r3_3_rg --set refine_gate=True > logs/r3_3_rg_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data mnist --only main,few,life --tag r3_3_rg --set refine_gate=True > logs/r3_3_rg_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data fashion --only main,few,life --tag r3_3_rg_syn --set refine_gate=True syn_meta=True > logs/r3_3_rg_syn_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --data mnist --only main,few,life --tag r3_3_rg_syn --set refine_gate=True syn_meta=True > logs/r3_3_rg_syn_mnist.log 2>&1
