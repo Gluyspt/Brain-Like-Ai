@@ -40,6 +40,7 @@ class SPARC:
                  v2=False, v2_K=128, v2_k=5, v2_grid=4, v2_cp=20000, v2_concat=False,
                  it_lvq=0.0, glimpses=3, glimpse_shift=2, trace_w=0.5, retrieval_reopen=False,
                  epi=0.0, epi_beta=20.0, epi_gate=0.0, epi_margin=None, epi_temp=0.01,
+                 engram_tag=False,
                  # structural consolidation
                  merge_frac=0.25, merge_at_task_end=True,
                  # hippocampus + sleep (hip_M=0 disables)
@@ -95,6 +96,10 @@ class SPARC:
             self.B = np.zeros((self.C, kc_n), np.float32)
         self.cls_gate = cls_gate   # CLS: slow readout trusted per class only as far as it is consolidated
         self.r = np.zeros(self.N)
+        self.blab = np.full(self.N, -1)      # birth label of each unit (engram tag; diagnostic unless engram_tag)
+        # engram tag: consolidation merges units only within the memory they were formed for, so a fading
+        # memory's units are never absorbed by a look-alike class (silent engram kept for reactivation)
+        self.engram_tag = engram_tag
         self.used = 0                        # units recruited so far (budget = N)
         self.s_mu, self.s_var = 0.2, 0.01    # running surprise statistics (neuromodulator baseline)
         # fast readout: per-class running mean of sparse codes (only row c changes)
@@ -280,6 +285,7 @@ class SPARC:
             self.W[j] = x
             self.n[j] = 1
             self.r[j] = 0.0
+            self.blab[j] = -1 if c is None else c
             self.used += 1
             self.n_recruit += 1
             a = self.W[:self.used] @ x
@@ -439,6 +445,8 @@ class SPARC:
         if u <= target:
             return
         lab = np.where(self.A[:, :u].max(0) > 0, self.A[:, :u].argmax(0), -1)
+        if self.engram_tag:
+            lab = np.where(self.blab[:u] >= 0, self.blab[:u], lab)
         groups = {g: np.where(lab == g)[0] for g in np.unique(lab)}
         cnt = np.array([len(v) for v in groups.values()])
         lo, hi = 0, cnt.max()                      # water-filling cap
@@ -488,6 +496,7 @@ class SPARC:
         self.W[:m] = self.W[keep]; self.W[m:u] = 0
         self.n[:m] = self.n[keep]; self.n[m:u] = 0
         self.r[:m] = self.r[keep]; self.r[m:u] = 0
+        self.blab[:m] = self.blab[keep]; self.blab[m:u] = -1
         for Mx in (self.A, self.R):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0
         if self.h_n:
