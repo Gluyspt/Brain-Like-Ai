@@ -1,0 +1,12 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --data cifar10 --seed 0 --split val --only main,few --tag cifar > logs/cifar_sparc.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data mnist --seed 0 --split test --only main,few,lbl,rev --tag final > logs/final_b5_mnist_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data mnist --seed 1 --split test --only main,few,lbl,rev --tag final > logs/final_b5_mnist_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data mnist --seed 2 --split test --only main,few,lbl,rev --tag final > logs/final_b5_mnist_2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data fashion --seed 0 --split test --only main,few,lbl,rev --tag final > logs/final_b5_fashion_0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data fashion --seed 1 --split test --only main,few,lbl,rev --tag final > logs/final_b5_fashion_1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data fashion --seed 2 --split test --only main,few,lbl,rev --tag final > logs/final_b5_fashion_2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b1 --data cifar10 --seed 0 --split val --only main,few --tag cifar > logs/cifar_b1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b2 --data cifar10 --seed 0 --split val --only main,few --tag cifar > logs/cifar_b2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b3 --data cifar10 --seed 0 --split val --only main,few --tag cifar > logs/cifar_b3.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b4 --data cifar10 --seed 0 --split val --only main,few --tag cifar > logs/cifar_b4.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model b5 --data cifar10 --seed 0 --split val --only main,few --tag cifar > logs/cifar_b5.log 2>&1
