@@ -88,6 +88,9 @@ def make(name, seed, overrides):
     if name == 'sparc':
         from sparc_seq import SeqSPARC
         return SeqSPARC(seed=seed, **overrides)
+    if name == 'sparc_ctx':
+        from sparc_seq import CtxSeqSPARC
+        return CtxSeqSPARC(seed=seed, **overrides)
     if name == 'ngram1':
         return NGram(1)
     if name == 'ngram2':

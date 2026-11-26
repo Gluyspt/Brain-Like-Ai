@@ -1,0 +1,47 @@
+{
+ "model": "sparc_ctx",
+ "seed": 0,
+ "split": "val",
+ "steps": 1000,
+ "overrides": {
+  "glimpses": 1,
+  "nz": 2000,
+  "eta_min": 0.02
+ },
+ "tag": "s2_3smoke",
+ "worlds": [
+  "W1_count",
+  "W2_plus3",
+  "W3_perm",
+  "W4_fib"
+ ],
+ "online_end_acc": {
+  "W1_count": 0.936,
+  "W2_plus3": 0.958,
+  "W3_perm": 0.974,
+  "W4_fib": 0.74
+ },
+ "retention": {
+  "W1_count": 0.8809369157412638,
+  "W2_plus3": 0.8395652173913044,
+  "W3_perm": 0.3978215226802183,
+  "W4_fib": 0.403162996423866
+ },
+ "violation_auroc": {
+  "W1_count": 0.979682338567356,
+  "W2_plus3": 0.9681869369369369,
+  "W3_perm": 0.7259910498594115,
+  "W4_fib": 0.6806383785460687
+ },
+ "completion": {
+  "W1_count": 0.15625,
+  "W2_plus3": 0.125,
+  "W3_perm": 0.23125,
+  "W4_fib": 0.0875
+ },
+ "mean_online": 0.9020000000000001,
+ "mean_retention": 0.6303716630591631,
+ "mean_violation": 0.8386246759774433,
+ "mean_completion": 0.15,
+ "wall_clock_s": 9.938242197036743
+}

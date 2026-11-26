@@ -142,3 +142,85 @@ class SeqSPARC:
         return self._s
 
     _last_inputs = None
+
+
+class CtxSeqSPARC(SeqSPARC):
+    """S2-3: context (latent-cause) inference over sequence predictors.
+
+    Each context slot k has its own predictor of the next *category* activity, q̂ = P_k z (z = sparse conjunction
+    of current and previous category activity). Every step each slot's prediction quality is tracked as an
+    exponential average of the log-probability it gave the observed category; the best slot is the active context
+    and the only one that learns (delta rule, metaplastic rate). If even the best slot has been predicting badly
+    for a while, a fresh slot is recruited (vigilance at the context level, like ART recruitment of units).
+    Brain basis: latent-cause / contextual inference (Gershman, Blei & Niv 2010; Heald, Lengyel & Wolpert 2021),
+    hippocampal remapping. research/17.
+    """
+
+    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, **kw):
+        kw.setdefault('ctx', 'q'); kw.setdefault('use_h', False); kw.setdefault('meta', True)
+        super().__init__(seed=seed, **kw)
+        self.K, self.lam, self.ctx_vig, self.grace = K, lam, ctx_vig, grace
+        self.n_ctx_new = 0
+
+    def _init(self):
+        super()._init()
+        self.Pk = np.zeros((self.K, 10, self.nz), np.float32)
+        self.nk = np.zeros((self.K, self.nz))
+        self.used_k = 1
+        self.score = np.zeros(self.K)       # running log-likelihood per context
+        self.active = 0
+        self.since_new = 0
+
+    def reset_context(self):
+        super().reset_context()
+        if getattr(self, 'score', None) is not None:
+            self.score[:] = 0.0
+        self.qpred = None
+
+    def predict_next(self):
+        if getattr(self, 'qpred', None) is None:
+            return np.full(10, 0.1)
+        p = np.maximum(self.qpred[self.active], 0) + 1e-3
+        return p / p.sum()
+
+    def _step(self, x, y, learn):
+        if learn:
+            self.s.learn(x, np.array([y]))
+        if self.U is None:
+            self._init()
+        cur = self._sparse(x)
+        q_obs = self._q(cur)[1]
+        if self.qpred is not None:
+            # every context scores how well it predicted the observed category
+            pk = np.maximum(self.qpred[:self.used_k], 0) + 1e-3
+            pk = pk / pk.sum(1, keepdims=True)
+            ll = np.log(pk @ q_obs + 1e-6)
+            self.score[:self.used_k] = (1 - self.lam) * self.score[:self.used_k] + self.lam * ll
+            self._s = 1.0 - float(pk[self.active] @ q_obs)
+            if learn and self._last_z is not None:
+                self.since_new += 1
+                best = int(np.argmax(self.score[:self.used_k]))
+                if (self.score[best] < self.ctx_vig and self.since_new > self.grace and self.used_k < self.K):
+                    k = self.used_k; self.used_k += 1          # persistent surprise -> a new context (latent cause)
+                    self.score[k] = 0.0; best = k; self.since_new = 0; self.n_ctx_new += 1
+                self.active = best
+                zi, zv = self._last_z
+                err = q_obs - self.qpred[self.active]
+                ez = np.maximum(1.0 / (1.0 + self.nk[self.active, zi]), self.eta_min)
+                self.Pk[self.active][:, zi] += np.outer(err, zv * ez)
+                self.nk[self.active, zi] += 1
+            else:
+                self.active = int(np.argmax(self.score[:self.used_k]))
+        else:
+            self._s = 1.0
+        self._qp = getattr(self, '_qc', None)
+        self._qc = (np.arange(10), q_obs)
+        z = self._z(cur, self.prev) if self._qp is not None else None
+        self._last_z = z
+        if z is not None:
+            self.qpred = np.stack([self.Pk[k][:, z[0]] @ z[1] for k in range(self.K)])
+        else:
+            self.qpred = None
+        self.prev = cur
+
+    _last_z = None
