@@ -139,3 +139,45 @@ class NumSPARC:
         m = self.magnitude(da) + self.magnitude(db)          # magnitude route: accumulate both quantities
         r = _unit(self.code(m))
         return int(np.argmax(_unit(self.G) @ r))
+
+
+class TISPARC:
+    """Transitive inference by a learned ordinal map (stage 3; research/17).
+
+    Objects are recognised by stage-1 SPARC (Fashion). Each recognised object has a 'position' on a 1-D map
+    (a value-like scalar), learned locally from choice feedback: after each trial the chosen/unchosen items'
+    positions move apart by a prediction error (Rescorla–Wagner-style value transfer, as in models of animal
+    transitive inference; cf. ordinal / rank coding in hippocampus and PFC). Choice = the item further up the
+    map (with decision noise). Novel pairs are answered from the map, never from stored pairs.
+    """
+    def __init__(self, seed=0, lr=0.15, noise=0.05, stage1_n=6000, oracle=False, **stage1):
+        self.rng = np.random.RandomState(seed); self.lr, self.noise, self.stage1_n = lr, noise, stage1_n
+        self.oracle = oracle      # True: use the true object identity (isolates relational learning from perception)
+        self.pos = np.zeros(10)
+        self.s = SPARC(seed=seed, glimpses=1, **stage1)
+
+    def setup(self, Xtr, ytr, rng):
+        if self.oracle:
+            return
+        idx = np.sort(np.concatenate([np.where(ytr == c)[0][:self.stage1_n // 10] for c in range(10)]))
+        for i in idx:
+            self.s.learn(Xtr[i:i + 1], ytr[i:i + 1])
+        self.s.end_task()
+
+    def _rec(self, x):
+        return int(self.s.predict(x, list(range(10)))[0])
+
+    def choose(self, i, j, xi, xj):
+        a, b = (i, j) if self.oracle else (self._rec(xi), self._rec(xj))
+        da = self.pos[a] + self.noise * self.rng.randn(); db = self.pos[b] + self.noise * self.rng.randn()
+        return i if da >= db else j
+
+    def feedback(self, i, j, xi, xj, winner):
+        a, b = (i, j) if self.oracle else (self._rec(xi), self._rec(xj))
+        w, l = (a, b) if winner == i else (b, a)
+        if w == l:
+            return
+        p = 1.0 / (1.0 + np.exp(-(self.pos[w] - self.pos[l]) / 0.1))     # predicted P(w above l)
+        err = 1.0 - p                                                      # prediction error (dopamine-like)
+        self.pos[w] += self.lr * err
+        self.pos[l] -= self.lr * err

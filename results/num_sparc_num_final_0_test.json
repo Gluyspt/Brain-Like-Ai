@@ -1,0 +1,19 @@
+{
+ "model": "sparc_num",
+ "seed": 0,
+ "split": "test",
+ "overrides": {
+  "route": "count",
+  "stage1_n": 10000
+ },
+ "tag": "final",
+ "GROUND": 0.745,
+ "ORDER": 0.9583333333333334,
+ "ORDER_close": 0.9,
+ "ORDER_far": 1.0,
+ "ADD_train": 0.9583333333333334,
+ "ADD_heldout": 0.6666666666666666,
+ "ADD_heldout_pm1": 0.6666666666666666,
+ "n_heldout": 12,
+ "wall_clock_s": 13.235535383224487
+}

@@ -1,0 +1,21 @@
+{
+ "model": "sparc_ti",
+ "seed": 1,
+ "split": "val",
+ "overrides": {
+  "oracle": true
+ },
+ "tag": "v2_oracle",
+ "train_last100": 1.0,
+ "by_distance": {
+  "1": 1.0,
+  "2": 1.0,
+  "3": 1.0,
+  "4": 1.0,
+  "5": 1.0,
+  "6": 1.0
+ },
+ "TI_adjacent": 1.0,
+ "TI_novel": 1.0,
+ "TI_novel_inner": 1.0
+}

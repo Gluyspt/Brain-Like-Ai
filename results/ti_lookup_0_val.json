@@ -1,0 +1,19 @@
+{
+ "model": "lookup",
+ "seed": 0,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "train_last100": 1.0,
+ "by_distance": {
+  "1": 1.0,
+  "2": 0.53,
+  "3": 0.525,
+  "4": 0.6,
+  "5": 0.525,
+  "6": 0.35
+ },
+ "TI_adjacent": 1.0,
+ "TI_novel": 0.506,
+ "TI_novel_inner": 0.525
+}

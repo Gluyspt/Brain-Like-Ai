@@ -1,0 +1,19 @@
+{
+ "model": "mlp",
+ "seed": 0,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "train_last100": 1.0,
+ "by_distance": {
+  "1": 1.0,
+  "2": 1.0,
+  "3": 0.9,
+  "4": 1.0,
+  "5": 1.0,
+  "6": 1.0
+ },
+ "TI_adjacent": 1.0,
+ "TI_novel": 0.9800000000000001,
+ "TI_novel_inner": 0.925
+}
