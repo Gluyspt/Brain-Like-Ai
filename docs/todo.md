@@ -13,6 +13,29 @@ Research to-dos live in `research/10-experiment-backlog.md` and `docs/roadmap.md
 
 Why per-run speed matters: SPARC learns one sample at a time (rule P2), so time goes into many small calls, not big matrix operations. Python overhead is most of the cost, which compiled code removes. Rule for every speed change: check that predictions are identical before and after (`regress.py`-style check: same seed, same stream, compare all predictions).
 
+## Profile (2026-11-27, cProfile, Fashion, `--quick --only main`, eye movements on, 1 thread; 4 other runs on the 4 cores, so absolute times are inflated, shares are what matter)
+Total 66.6 s, 8.7 M Python function calls, 30 000 views learned (10 000 images × 3 glimpses).
+
+| Where | Time (cumulative) | Share | What it is |
+|---|---|---|---|
+| `SPARC._learn_view` (training, per view) | 44.7 s | 67 % | |
+| ├ V1 encode of the view (`_pre` → `v1.encode`: patches, patch × dictionary matmul, per-position k-WTA via `np.partition`, pooling) | 22.3 s | 34 % | small matmul + partition per view |
+| └ IT step (own time 20.1 s: matvecs W·x up to 4× per view, k-WTA, readouts, hippocampus) + V1 learning 2.3 s | ~22 s | 33 % | many small ops |
+| evaluation (`SPARC.encode`, batched, 27 calls) | 16.7 s | 25 % | already batched |
+| rest (setup, data) | ~5 s | 8 % | |
+
+Small-op overhead is large: `norm` 161 k calls (3.5 s), `_unit` 108 k (3.1 s), `take/put_along_axis` 100 k (2 s), `partition` / `argpartition` 141 k (6.4 s). Per view ≈ 1.5 ms of training work spread over ~250 Python calls.
+
+## GPU (CUDA) plan
+No GPU on the cloud machine (no `nvidia-smi`). Verdict: **little gain for training** (batch 1, single pass: each step is ~1–2 ms of many small sequential ops; a GPU kernel launch costs ~5–20 µs each and the Python loop stays), **large gain for evaluation and for many runs at once**.
+| Step | Gain on GPU | How |
+|---|---|---|
+| G1. Evaluation (25 % of a run) | large | CuPy drop-in for `SPARC.encode` / `predict` (already batched); keep weights on the GPU between evaluations |
+| G2. Many models in lockstep (seeds, sweeps) | large | stack S models' weights (S, N, D) and step them together; batch 1 per model is kept (the batch rule is within one model) |
+| G3. Training loop | ~none to 2× | only after steps 3–4 above; keep V1 + IT of one model on the GPU to avoid transfers |
+| G4. Scale (N ≥ 30 k IT units, larger images, CIFAR at scale) | grows with size | per-step matmuls become big enough to fill the GPU |
+Order on your own PC: speed steps 3 → 4 first (CPU, helps every machine), then G1, then G2 if you sweep a lot. Install: `pip install cupy-cuda12x`; use `xp = cupy if available else numpy` in `v1.py` / `sparc.py`; check predictions identical (within float tolerance) before/after.
+
 ## Moving to your own PC
 1. **Get the code**: `git clone` the repo; work on a branch; `main` holds the merged state.
 2. **Python**: 3.11+ with `numpy` (required) and `numba` (optional, faster). No GPU and no torch needed. `pip install numpy numba`.
