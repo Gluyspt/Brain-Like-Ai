@@ -7,11 +7,14 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Running
 | Idea | From | Note |
 |---|---|---|
+| Spacing effect test; early/late LTP with capture by sleep or surprise (0c, 0d) | 24 | R4-3, queued behind R4-2 |
 | Slower homeostasis (3 seeds), SHY down-scaling sleep, mid tau | 01, 15, 22, 24 | R4-2 (R4-1: slow homeostasis FEW5 +15 / +6 but old drop up; sleep catch-up undoes relearning) |
 
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
 |---|---|---|---|---|
+| 0c | **Spacing effect**: same number of examples of a new class, massed (one block) vs spaced (several blocks with sleep between); judged after a delay | spacing effect (Ebbinghaus 1885; Cepeda et al. 2006 [known]); sleep-dependent consolidation | retention, few-shot | 2026-11-27 discussion |
+| 0d | **Short-lasting synapses** (early → late LTP): each weight change has a fast-decaying part that becomes lasting only if captured by sleep or a nearby surprising event (synaptic tagging and capture) | early/late LTP (Frey & Morris 1997 [known]); behavioural tagging (research/24) | retention vs interference, few-shot drop | 24, 2026-11-27 discussion |
 | 1 | **Delayed relearning check** in LIFE (relearning judged after sleep and after a further learning phase) | savings, desirable difficulties | benchmark validity for relearning | 22 |
 | 2 | **Context inference for stage-1 memory**: a reminder reactivates the old class's context | latent causes, COIN | relearning, few-shot drop | 19, 15 |
 | 3 | **Adaptive teacher vs curious learner vs random reminders** (equal budget) | tutoring / expertise reversal; curiosity = learning-progress reward | retention, relearning | 23 |

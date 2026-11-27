@@ -1,0 +1,10 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 0 --data mnist --only space --tag r4_3_space > logs/r4_3_space_mnist0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 1 --data mnist --only space --tag r4_3_space > logs/r4_3_space_mnist1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 2 --data mnist --only space --tag r4_3_space > logs/r4_3_space_mnist2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 0 --data fashion --only space --tag r4_3_space > logs/r4_3_space_fashion0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 1 --data fashion --only space --tag r4_3_space > logs/r4_3_space_fashion1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 2 --data fashion --only space --tag r4_3_space > logs/r4_3_space_fashion2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 0 --data mnist --only main,few,space --tag r4_3_eltp --set early_ltp=True > logs/r4_3_eltp_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 0 --data mnist --only main,few,space --tag r4_3_eltptag --set early_ltp=True tag_z=2.0 > logs/r4_3_eltptag_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 0 --data fashion --only main,few,space --tag r4_3_eltp --set early_ltp=True > logs/r4_3_eltp_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --seed 0 --data fashion --only main,few,space --tag r4_3_eltptag --set early_ltp=True tag_z=2.0 > logs/r4_3_eltptag_fashion.log 2>&1

@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, early_ltp=False, e_tau=1000.0, tag_z=None,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -126,6 +126,13 @@ class SPARC:
         self.h_n = 0
         # slow cortical readout, trained only in sleep
         self.R = np.zeros((self.C, self.N), np.float32)
+        # early vs late LTP (Frey & Morris 1997 synaptic tagging and capture; research/24): each fast-readout
+        # change first sits in a decaying early component Ae (part of A); it becomes lasting only when captured,
+        # by sleep (plasticity-related proteins) or by a strongly surprising labelled event (behavioural
+        # tagging: novelty-triggered dopamine captures nearby tags)
+        self.early_ltp, self.e_tau, self.tag_z = early_ltp, e_tau, tag_z
+        self.Ae = np.zeros((self.C, self.N), np.float32) if early_ltp else None
+        self.n_capture = 0
         self.sleep_epochs, self.sleep_eta, self.downscale = sleep_epochs, sleep_eta, downscale
         self.mix, self.beta = mix, beta
         self.slept = False
@@ -358,7 +365,16 @@ class SPARC:
                 self.E[c, :u] += 1.0
                 self.A[c, :u] += (h[:u] - self.A[c, :u]) / self.E[c, :u]
             else:
-                self.A[c] += (h - self.A[c]) / self.nc[c]
+                dA = (h - self.A[c]) / self.nc[c]
+                if self.early_ltp:
+                    f = np.float32(np.exp(-1.0 / self.e_tau))
+                    self.A -= (1 - f) * self.Ae            # unconsolidated early LTP fades
+                    self.Ae *= f
+                    self.Ae[c] += dA
+                    if self.tag_z is not None and z > self.tag_z:
+                        self.Ae[:] = 0.0                   # surprising event: tags captured, change made lasting
+                        self.n_capture += 1
+                self.A[c] += dA
             if self.M > 0:
                 p = 1.0 / (1.0 + np.exp(-self.hip_gain * z))   # novelty-gated memory write
                 if self.rng.rand() < p:
@@ -425,6 +441,8 @@ class SPARC:
 
     # ---------- sleep ----------
     def end_task(self):
+        if self.early_ltp:
+            self.Ae[:] = 0.0                               # sleep: early LTP consolidated into late LTP
         if self.ie_sleep:
             if self.ie_sleep == 'down':                    # SHY: sleep only down-regulates overused units
                 self.r_eff[:] = np.maximum(self.r_eff, self.r)
@@ -525,6 +543,8 @@ class SPARC:
                     self.W[gi] = _unit(ni * self.W[gi] + nj * self.W[gj])
                     self.n[gi] = ni + nj
                     self.A[:, gi] += self.A[:, gj]
+                    if self.early_ltp:
+                        self.Ae[:, gi] += self.Ae[:, gj]
                     self.E[:, gi] = np.maximum(self.E[:, gi], self.E[:, gj])
                     self.R[:, gi] += self.R[:, gj]
                     into[into == gj] = gi
@@ -542,7 +562,7 @@ class SPARC:
         self.r[:m] = self.r[keep]; self.r[m:u] = 0
         self.r_eff[:m] = self.r_eff[keep]; self.r_eff[m:u] = 0
         self.blab[:m] = self.blab[keep]; self.blab[m:u] = -1
-        for Mx in (self.A, self.R, self.E):
+        for Mx in (self.A, self.R, self.E) + ((self.Ae,) if self.early_ltp else ()):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0
         if self.h_n:
             hi = self.h_idx[:self.h_n]
@@ -664,7 +684,7 @@ class SPARC:
 
     def diagnostics(self):
         return dict(it_used=int(self.used), n_recruit=int(self.n_recruit), n_seen=int(self.n_seen),
-                    n_merged=int(self.n_merged), n_consol=int(self.n_consol), full_at=int(self.full_at),
+                    n_merged=int(self.n_merged), n_capture=int(self.n_capture), n_consol=int(self.n_consol), full_at=int(self.full_at),
                     n_sleep=int(self.n_sleep), n_rethink=int(self.n_rethink), n_lvq=int(self.n_lvq), n_match_track=int(self.n_mt), n_conf_err=int(self.n_conf_err), n_cleaned=int(self.n_cleaned), hip_writes=int(self.n_writes), hip_size=int(self.h_n),
                     hip_per_class=[int(v) for v in np.bincount(self.h_lab[:self.h_n], minlength=self.C)],
                     units_per_class=[int(v) for v in np.bincount(self.A[:, :self.used].argmax(0), minlength=self.C)])

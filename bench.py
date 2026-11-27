@@ -99,7 +99,7 @@ def main():
     ap.add_argument('--cap', type=int, default=None, help='cap train at N samples per class (data-scaling runs)')
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
     ap.add_argument('--tag', default='')
-    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life')
+    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life,space')
     ap.add_argument('--out', default='results')
     a = ap.parse_args()
 
@@ -137,7 +137,7 @@ def main():
         print(f"  ACC={res['ACC']:.4f} FGT={res['FGT']}", flush=True)
 
     # ---- few-shot + novelty: learn tasks 1-4, then k labelled shots of classes 8, 9 ----
-    if 'few' in parts and a.model != 'b3':
+    if ('few' in parts or 'space' in parts) and a.model != 'b3':
         print('[few-shot / novelty]', flush=True)
         model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
         run_stream(model, Xtr, ytr, Xev, yev, cap, tasks=TASKS[:4], log=False)
@@ -152,7 +152,7 @@ def main():
         rng = np.random.RandomState(a.seed + 100)
         pool8 = np.where(ytr == 8)[0]
         pool9 = np.where(ytr == 9)[0]
-        for k in (1, 5):
+        for k in ((1, 5) if 'few' in parts else ()):
             m = copy.deepcopy(model)
             i8 = rng.choice(pool8, k, replace=False)
             i9 = rng.choice(pool9, k, replace=False)
@@ -165,6 +165,27 @@ def main():
             print(f"  FEW{k}={res[f'FEW{k}']:.4f} old_drop={res[f'FEW{k}_old_drop']:.4f}", flush=True)
         if 'NOVELTY' in res:
             print(f"  NOVELTY AUROC={res['NOVELTY']:.4f}", flush=True)
+        # ---- spacing effect (Ebbinghaus; Cepeda et al. 2006): 8 shots of classes 8 and 9, given in one
+        # session (massed early / massed late) or 2 per class in each of 4 sessions (spaced). Every session is
+        # followed by the same gap (200 old-class images) and a night's sleep; a final gap + sleep before test.
+        if 'space' in parts:
+            srng = np.random.RandomState(a.seed + 600)
+            i8, i9 = srng.choice(pool8, 8, replace=False), srng.choice(pool9, 8, replace=False)
+            new = np.stack([i8, i9], 1).ravel()
+            oldpool = np.where(np.isin(ytr, old))[0]
+            gaps = [srng.choice(oldpool, 200, replace=False) for _ in range(5)]
+            plans = {'massed_early': [new, [], [], []], 'massed_late': [[], [], [], new],
+                     'spaced': [new[4 * q:4 * q + 4] for q in range(4)]}
+            for name, plan in plans.items():
+                m = copy.deepcopy(model)
+                for q in range(4):
+                    for i in plan[q]:
+                        m.learn(Xtr[i:i + 1], ytr[i:i + 1])
+                    feed(m, Xtr, ytr, gaps[q]); m.end_task()
+                feed(m, Xtr, ytr, gaps[4]); m.end_task()
+                res[f'SPACE_{name}'] = acc_on(m, Xev, yev, [8, 9], all_cls)
+                res[f'SPACE_{name}_old_drop'] = base_old - acc_on(m, Xev, yev, old, all_cls)
+                print(f"  SPACE {name}: new {res[f'SPACE_{name}']:.4f} old drop {res[f'SPACE_{name}_old_drop']:.4f}", flush=True)
 
     # ---- few labels: 5% of stream labelled ----
     if 'lbl' in parts and a.model != 'b3':
