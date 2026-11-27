@@ -1,0 +1,10 @@
+{
+ "model": "sparc_sd",
+ "seed": 2,
+ "split": "val",
+ "overrides": {},
+ "tag": "v2",
+ "train_last500": 0.682,
+ "SD_trained_classes": 0.69,
+ "SD_novel_classes": 0.731
+}

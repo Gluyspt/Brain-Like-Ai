@@ -1,0 +1,10 @@
+{
+ "model": "mlp",
+ "seed": 0,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "train_last500": 0.558,
+ "SD_trained_classes": 0.59,
+ "SD_novel_classes": 0.541
+}

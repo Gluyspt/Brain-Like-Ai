@@ -1,0 +1,10 @@
+{
+ "model": "lookup",
+ "seed": 0,
+ "split": "val",
+ "overrides": {},
+ "tag": "",
+ "train_last500": 1.0,
+ "SD_trained_classes": 1.0,
+ "SD_novel_classes": 0.494
+}
