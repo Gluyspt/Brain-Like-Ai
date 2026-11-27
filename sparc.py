@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -96,6 +96,10 @@ class SPARC:
             self.B = np.zeros((self.C, kc_n), np.float32)
         self.cls_gate = cls_gate   # CLS: slow readout trusted per class only as far as it is consolidated
         self.r = np.zeros(self.N)
+        # ie_sleep: homeostatic excitability changes are applied only during sleep (synaptic homeostasis is
+        # slow and largely sleep-dependent: Turrigiano; Tononi & Cirelli); newborn units are hyperexcitable at once
+        self.ie_sleep = ie_sleep
+        self.r_eff = np.zeros(self.N)
         self.blab = np.full(self.N, -1)      # birth label of each unit (engram tag; diagnostic unless engram_tag)
         # engram tag: consolidation merges units only within the memory they were formed for, so a fading
         # memory's units are never absorbed by a look-alike class (silent engram kept for reactivation)
@@ -182,7 +186,8 @@ class SPARC:
         if self.ie_gamma == 0 or u == 0:
             return 0.0
         tgt = self.k / u
-        return (self.ie_gamma * np.clip(1.0 - self.r[:u] / tgt, -1.0, 1.0)).astype(np.float32)
+        r = self.r_eff[:u] if self.ie_sleep else self.r[:u]
+        return (self.ie_gamma * np.clip(1.0 - r / tgt, -1.0, 1.0)).astype(np.float32)
 
     def _code(self, a, top_down=None):
         """k-WTA on activations a (n, used) -> sparse code (n, N); winners chosen on
@@ -297,6 +302,7 @@ class SPARC:
             self.W[j] = x
             self.n[j] = 1
             self.r[j] = 0.0
+            self.r_eff[j] = 0.0
             self.blab[j] = -1 if c is None else c
             self.used += 1
             self.n_recruit += 1
@@ -419,6 +425,8 @@ class SPARC:
 
     # ---------- sleep ----------
     def end_task(self):
+        if self.ie_sleep:
+            self.r_eff[:] = self.r                         # sleep: homeostatic excitability catches up
         if self.merge_frac > 0 and self.merge_at_task_end and self.used > (1 - self.merge_frac) * self.N:
             self.consolidate()
         if self.M > 0 and self.h_n > 0:
@@ -529,6 +537,7 @@ class SPARC:
         self.W[:m] = self.W[keep]; self.W[m:u] = 0
         self.n[:m] = self.n[keep]; self.n[m:u] = 0
         self.r[:m] = self.r[keep]; self.r[m:u] = 0
+        self.r_eff[:m] = self.r_eff[keep]; self.r_eff[m:u] = 0
         self.blab[:m] = self.blab[keep]; self.blab[m:u] = -1
         for Mx in (self.A, self.R, self.E):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0

@@ -1,0 +1,4 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --only main,few,life --data fashion --tag r4_iesleep --set ie_sleep=True > logs/r4_iesleep_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --only main,few,life --data mnist --tag r4_iesleep --set ie_sleep=True > logs/r4_iesleep_mnist.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --only main,few,life --data fashion --tag r4_ieslow --set ie_tau=20000 > logs/r4_ieslow_fashion.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --seed 0 --split val --only main,few,life --data mnist --tag r4_ieslow --set ie_tau=20000 > logs/r4_ieslow_mnist.log 2>&1
