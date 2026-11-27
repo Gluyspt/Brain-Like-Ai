@@ -8,3 +8,4 @@
 - Background research: research/ (one .md per brain system; index in research/README.md). Name the file a mechanism comes from when logging it.
 - Keep the work clean: goal.md holds only the goal; findings go in research/, rules and protocols in docs/, run lists in runs/, helper scripts in tools/, outputs in results/.
 - Git: commit on the working branch; when a full task or key piece of work is complete, push it and fast-forward `main` to it (docs/rules.md). Never force-push `main`.
+- Research → test rule (docs/rules.md): every research idea worth trying gets tested, unless more important current-stage work comes first (then it is queued) or it belongs to a later stage (then it is parked with a stage tag). Each idea has a backlog row with status and reason.

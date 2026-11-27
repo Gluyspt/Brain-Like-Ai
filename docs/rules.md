@@ -4,6 +4,12 @@
 Every step or decision about the model or its training must make it act more like a real brain. Name the brain mechanism behind each change in docs/iteration-log.md. A change that only raises an accuracy number with no brain analogue does not belong here, even if it scores better; when a brain-like and a score-only option compete, pick the brain-like one and log the cost. Accuracy targets (goal.md §4) are checks that the brain-like machinery works, not the objective.
 Name the mechanism and the `research/` file it comes from in docs/iteration-log.md.
 
+## Research → test rule (user directive, 2026-11-27)
+Every research finding that suggests something worth trying **gets tested**, unless one of two exceptions applies:
+1. **More important work comes first**: something already in progress, or a fix for a failing criterion of the current stage, has priority. The idea waits in the queue, then runs.
+2. **It belongs to a later stage**: it is parked under that stage in `research/10-experiment-backlog.md` (stage tag) and tested when that stage starts.
+Each research note ends with its "try" ideas, and each one gets a backlog row with a status (queued / running / tested → result / parked for stage N) and a reason. Nothing worth trying is left without a decision. When a test finishes, its result goes into the research note and docs/iteration-log.md.
+
 ## Evidence and evaluation
 - Tune on the validation split only (`--split val`); the test split is used only for logged final runs.
 - Every reported number is copied from a `results/*.json` file, never estimated. Re-run seed 0 yourself before a number changes a decision.
