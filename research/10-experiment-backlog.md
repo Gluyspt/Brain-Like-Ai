@@ -12,7 +12,6 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
 |---|---|---|---|---|
-| 0b | **Event segmentation from surprise** in stage 2 (remove the given episode boundaries) (cheap) | infant statistical learning; event segmentation | stage-2 realism | 24 |
 | 1 | **Delayed relearning check** in LIFE (relearning judged after sleep and after a further learning phase) | savings, desirable difficulties | benchmark validity for relearning | 22 |
 | 2 | **Context inference for stage-1 memory**: a reminder reactivates the old class's context | latent causes, COIN | relearning, few-shot drop | 19, 15 |
 | 3 | **Adaptive teacher vs curious learner vs random reminders** (equal budget) | tutoring / expertise reversal; curiosity = learning-progress reward | retention, relearning | 23 |
@@ -33,7 +32,6 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 | 16 | **BCM sliding threshold** instead of k-WTA in V1 | BCM metaplasticity | locality of competition | 01 |
 | 17 | **Adaptive global inhibition** for the KC expansion (fly APL neuron) | fly mushroom body | few-shot | 02 |
 | 18 | **Separate hemisphere IT populations + learned gate** (concatenation was rejected in It 10) | hemispheric specialisation, thalamic gating | look-alikes | 04, 06 |
-| 19 | **Stage-2 online accuracy** (0.893 vs 0.90): faster within-context learning without losing retention | metaplasticity, contexts | stage-2 near-pass | 19 |
 
 ## Parked: later stages
 | Stage | Idea | From |
@@ -54,6 +52,7 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Tested (results in docs/iteration-log.md)
 | Idea | Result | From |
 |---|---|---|
+| Event boundaries removed (continuous stream); surprise self-segmentation | **adopted** stream (S2-8/9/F2: test online 0.924, all stage-2 criteria pass); self-segmentation rejected (reset kills context recruitment; binding-only over-segments) | 24 |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |

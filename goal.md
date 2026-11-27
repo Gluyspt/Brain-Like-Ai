@@ -1,6 +1,6 @@
 # goal.md — Toward a brain-like model that understands, thinks and reasons
 
-> Status (2026-11-26): **Stage 1** rounds 1–3 done (test: MNIST 94.7 / FGT 0.7, Fashion 81.5 / FGT 7.6; open MUSTs: MNIST few-shot, few-shot old-class drop; relearning unsolved). **Stage 2** near-pass (test: retention 0.820, violation 0.928, completion5 0.725; online 0.893 vs 0.90). **Stage 3** started: number sense, adds unseen pairs (val 0.78) where memorising baselines are at chance. Details: ARCHITECTURE.md, docs/iteration-log.md.
+> Status (2026-11-26): **Stage 1** rounds 1–3 done (test: MNIST 94.7 / FGT 0.7, Fashion 81.5 / FGT 7.6; open MUSTs: MNIST few-shot, few-shot old-class drop; relearning unsolved). **Stage 2** passes its own criteria on test (continuous stream, 3 seeds: online 0.924, retention 0.863, violation 0.951, completion5 0.860); formally done once stage 1's open MUSTs pass. **Stage 3** started: number sense, adds unseen pairs (val 0.78) where memorising baselines are at chance. Details: ARCHITECTURE.md, docs/iteration-log.md.
 
 ## 0. Ultimate goal (user, 2026-11-26)
 A model that actually **understands**, can **think**, and does real **reasoning**, built from brain mechanisms (brain-first rule, docs/rules.md) and learning the way a brain does.

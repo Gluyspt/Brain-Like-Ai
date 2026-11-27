@@ -129,7 +129,7 @@ def main():
     ap.add_argument('--split', default='val', choices=['val', 'test'])
     ap.add_argument('--steps', type=int, default=3000)
     ap.add_argument('--episode', type=int, default=30, help='items per training episode (event boundaries between)')
-    ap.add_argument('--boundaries', default='given', choices=['given', 'none'],
+    ap.add_argument('--boundaries', default='none', choices=['given', 'none'],
                     help='none: training is one continuous stream, episode jumps are not signalled')
     ap.add_argument('--set', nargs='*', default=[])
     ap.add_argument('--tag', default='')

@@ -9,7 +9,7 @@ Sequence worlds built from MNIST images. Each world is a hidden rule over digit 
 | W3_perm | next = π(cur), a fixed random permutation | 1 |
 | W4_fib | next = prev + cur mod 10 | 2 |
 
-**Stream:** the worlds are learned one after another, each for `--steps` items (default 3000), online and single pass, as episodes of `--episode` items (default 30) with random starts, separated by event boundaries (`reset_context`). Before 2026-11-26 each world was one continuous sequence; that visited only 7 (W3) and 3 (W4) of the digit pairs, so test sequences asked about transitions never shown (benchmark flaw, fixed). Every step shows a fresh training image of the current class with its label. Before each item the model must predict the next class (`predict_next`).
+**Stream:** the worlds are learned one after another, each for `--steps` items (default 3000), online and single pass, as episodes of `--episode` items (default 30) with random starts. Since 2026-11-27 (S2-8) the episodes follow each other **as one continuous stream with no signalled boundary** (`--boundaries none`, default; real experience has no reset signal). `--boundaries given` restores the old `reset_context` between episodes. Before 2026-11-26 each world was one continuous sequence; that visited only 7 (W3) and 3 (W4) of the digit pairs, so test sequences asked about transitions never shown (benchmark flaw, fixed). Every step shows a fresh training image of the current class with its label. Before each item the model must predict the next class (`predict_next`).
 
 **Metrics** (results/seq_<model>[_<tag>]_<seed>_<split>.json):
 - **online_end_acc**: next-item accuracy over the last 500 steps of each world while learning it.

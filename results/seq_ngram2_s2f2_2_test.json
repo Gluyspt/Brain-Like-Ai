@@ -1,0 +1,51 @@
+{
+ "model": "ngram2",
+ "seed": 2,
+ "split": "test",
+ "steps": 3000,
+ "overrides": {},
+ "tag": "s2f2",
+ "worlds": [
+  "W1_count",
+  "W2_plus3",
+  "W3_perm",
+  "W4_fib"
+ ],
+ "boundaries": "none",
+ "online_end_acc": {
+  "W1_count": 0.98,
+  "W2_plus3": 0.974,
+  "W3_perm": 0.952,
+  "W4_fib": 0.772
+ },
+ "retention": {
+  "W1_count": 0.8009669306665875,
+  "W2_plus3": 0.905977555053642,
+  "W3_perm": 0.9025057926436645,
+  "W4_fib": 0.7718962764288851
+ },
+ "violation_auroc": {
+  "W1_count": 0.980115015497218,
+  "W2_plus3": 0.9746069681466821,
+  "W3_perm": 0.9775596816976128,
+  "W4_fib": 0.979280303030303
+ },
+ "completion": {
+  "W1_count": 0.31875,
+  "W1_count_from5": 0.61875,
+  "W2_plus3": 0.25,
+  "W2_plus3_from5": 1.0,
+  "W3_perm": 0.34375,
+  "W3_perm_from5": 1.0,
+  "W4_fib": 0.375,
+  "W4_fib_from5": 0.44375
+ },
+ "mean_online": 0.9195,
+ "mean_retention": 0.8453366386981948,
+ "mean_violation": 0.9778904920929541,
+ "mean_completion": 0.321875,
+ "mean_completion5": 0.765625,
+ "wall_clock_s": 0.09252738952636719,
+ "n_seg": null,
+ "n_ctx_new": null
+}

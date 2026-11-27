@@ -145,11 +145,12 @@ Stage-1 SPARC is the perception. On top of it, a sparse **conjunction** of the c
 
 | test, 3 seeds (docs/benchmark-stage2.md) | online | retention | violation AUROC | completion from 5 items |
 |---|---|---|---|---|
-| **SPARC + context inference** | 0.893 | **0.820** | **0.928** | **0.725** |
-| second-order n-gram on true labels (idealised, not brain-like) | 0.910 | 0.846 | 0.975 | 0.738 |
+| **SPARC + context inference**, continuous stream (S2-F2) | **0.924** | **0.863** | **0.951** | **0.860** |
+| same, episode boundaries signalled (S2-F1, old protocol) | 0.893 | 0.820 | 0.928 | 0.725 |
+| second-order n-gram on true labels (idealised, not brain-like), continuous | 0.908 | 0.846 | 0.972 | 0.738 |
 | target | ≥ 0.90 | ≥ 0.60 | ≥ 0.85 | ≥ 0.70 |
 
-Near-pass: 3 of 4 targets. SPARC is within ~3 pts of an idealised counting learner while learning from raw images, online, with local rules and no stored sequences.
+All 4 targets pass on the continuous stream (no signalled event boundaries, as in real experience). Signalling boundaries had wiped the context evidence at every episode; letting the model segment the stream itself from surprise was worse (S2-8/9). SPARC is within ~3 pts of an idealised counting learner while learning from raw images, online, with local rules and no stored sequences.
 
 ## 7. Stage 3 (first step): number sense (`sparc_num.py`, `numbench.py`)
 Dehaene's triple code (research/20): the stage-1 visual digit form; an innate approximate number system (center-surround dot detectors → local competition → summation → log-tuned numerosity units with Weber noise); Hebbian grounding of digit symbols in numerosity codes; memorised facts; and **counting-on**, which uses successor knowledge learned from counting sequences and two working-memory registers. The routine itself is built in; learning it belongs to stages 4–5.
