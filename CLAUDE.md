@@ -3,6 +3,7 @@
 - SPARC stays local: no autograd, no backprop through layers, batch 1, single pass, no raw-image storage.
 - Tune on the validation split only (--split val). The test set is for logged results.
 - Comparisons: always show old (baseline) vs new side by side, both labelled (config, split, seeds), with the metric's direction.
+- Human comparison: when a result touches a known human effect, log (1) human-like? yes / no / opposite and (2) good for the work? (docs/rules.md, docs/human-signatures.md).
 - Touch only the files your task names. Report numbers copied from results JSON, never estimated.
 - Environment: 4 CPU cores, numpy only (no torch). Datasets are cached in data_cache/ (gitignored).
 - **Brain-first rule.** Every change to the model or its training must be justified as something a real brain does (name the mechanism). A change that only raises an accuracy number, with no brain analogue, does not belong in this project, even if it scores better. When a brain-like and a score-only option compete, pick the brain-like one and log the cost. **Copy the function, not the limitation**: adopt brain mechanisms for the job they do; a brain limit that exists only because of biology's costs (capacity, slowness, useless forgetting) is kept only if it measurably helps. A brain mechanism that does not help alone becomes **dormant** (flag off, partner named), is re-tested when its partner arrives and in each round's combination round (all-on + leave-one-out); never deleted (docs/rules.md).

@@ -13,6 +13,12 @@ Name the mechanism and the `research/` file it comes from in docs/iteration-log.
 4. **Suspected pairs get a 2×2 test**: neither, A alone, B alone, A+B.
 Do not switch everything on at once as a normal step: with many mechanisms a bad result cannot be traced, and one bug spoils every number.
 
+## Human comparison: two questions for every result (user directive, 2026-11-27)
+When an experiment touches a known human effect (savings, spacing, sleep vs wake, distance effects, few-shot learning, …), its docs/iteration-log.md row says:
+1. **Human-like?** Does SPARC show the human effect: yes / no / opposite (with the reference).
+2. **Good for the work?** Judged by *copy the function, not the limitation*.
+Then act on the combination: human-like and useful → keep; human-like but costly → find the job it does or the brain's partner mechanism that removes the cost; not human-like but useful → fine if no rule is broken; not human-like and harmful → research the missing brain mechanism and test it. A human-like result can be the right result even when a score is lower. Keep the table in docs/human-signatures.md up to date.
+
 ## Reporting comparisons (user directive, 2026-11-27)
 Every comparison, in chat and in docs, shows **old (baseline) vs new** side by side, each labelled with what it is (config name, split, seeds), with the metric name and its direction (higher / lower is better), and the change.
 
