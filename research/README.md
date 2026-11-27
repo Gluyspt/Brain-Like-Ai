@@ -33,6 +33,7 @@ Each file covers one brain system or theme, with the same sections:
 | [18-blindness-and-learning-without-vision.md](18-blindness-and-learning-without-vision.md) | how blind people learn; supramodal cortex; Molyneux's question; AI "seeing" | stage-6 test idea |
 | [19-context-inference.md](19-context-inference.md) | latent-cause inference, COIN, remapping; stage-2 contexts | used in stage 2 (S2-3) |
 | [20-number-sense.md](20-number-sense.md) | number sense, number line, symbol grounding, how children learn addition | stage-3 first benchmark |
+| [21-memo-memory-as-a-model.md](21-memo-memory-as-a-model.md) | MeMo ("Memory as a Model", 2026) vs SPARC: memory/reasoning split at LLM scale | related work; stage 4–6 ideas |
 | [12-prior-attempts-and-warnings.md](12-prior-attempts-and-warnings.md) | who tried this before (ART, Leabra, Spaun, HTM, Human Brain Project, bio-plausible backprop) and the warnings | read before claiming results |
 
 ## Rules for these notes
