@@ -426,7 +426,10 @@ class SPARC:
     # ---------- sleep ----------
     def end_task(self):
         if self.ie_sleep:
-            self.r_eff[:] = self.r                         # sleep: homeostatic excitability catches up
+            if self.ie_sleep == 'down':                    # SHY: sleep only down-regulates overused units
+                self.r_eff[:] = np.maximum(self.r_eff, self.r)
+            else:
+                self.r_eff[:] = self.r                     # sleep: homeostatic excitability catches up
         if self.merge_frac > 0 and self.merge_at_task_end and self.used > (1 - self.merge_frac) * self.N:
             self.consolidate()
         if self.M > 0 and self.h_n > 0:

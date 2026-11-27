@@ -7,7 +7,7 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Running
 | Idea | From | Note |
 |---|---|---|
-| Sleep-time homeostasis / slower homeostasis (fix for anti-savings) | 01, 15, 22 | R4-1, val seed 0, MNIST + Fashion main / few / life |
+| Slower homeostasis (3 seeds), SHY down-scaling sleep, mid tau | 01, 15, 22, 24 | R4-2 (R4-1: slow homeostasis FEW5 +15 / +6 but old drop up; sleep catch-up undoes relearning) |
 
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
