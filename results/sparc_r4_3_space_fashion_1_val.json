@@ -1,0 +1,23 @@
+{
+ "model": "sparc",
+ "data": "fashion",
+ "seed": 1,
+ "split": "val",
+ "quick": false,
+ "cap": null,
+ "overrides": {},
+ "tag": "r4_3_space",
+ "FEW_base_old_acc": 0.8199241786015165,
+ "NOVELTY": 0.8551502095383696,
+ "surprise_mean_old_new": [
+  0.11598611623048782,
+  0.24375520646572113
+ ],
+ "SPACE_massed_early": 0.9369009584664537,
+ "SPACE_massed_early_old_drop": 0.027379949452401076,
+ "SPACE_massed_late": 0.9281150159744409,
+ "SPACE_massed_late_old_drop": 0.025063184498736346,
+ "SPACE_spaced": 0.9337060702875399,
+ "SPACE_spaced_old_drop": 0.033066554338668896,
+ "wall_clock_s": 238.27969670295715
+}

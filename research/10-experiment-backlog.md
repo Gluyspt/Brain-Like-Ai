@@ -7,14 +7,11 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Running
 | Idea | From | Note |
 |---|---|---|
-| Spacing effect test; early/late LTP with capture by sleep or surprise (0c, 0d) | 24 | R4-3, queued behind R4-2 |
 | SHY sleep (3 seeds) + slow recovery across nights | 01, 15, 22, 24 | R4-4, queued (R4-2: SHY gives the first real savings, Fashion 73.5 → 91.0, MNIST FEW5 76.0, but old drop 5.9 / 4.0) |
 
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
 |---|---|---|---|---|
-| 0c | **Spacing effect**: same number of examples of a new class, massed (one block) vs spaced (several blocks with sleep between); judged after a delay | spacing effect (Ebbinghaus 1885; Cepeda et al. 2006 [known]); sleep-dependent consolidation | retention, few-shot | 2026-11-27 discussion |
-| 0d | **Short-lasting synapses** (early → late LTP): each weight change has a fast-decaying part that becomes lasting only if captured by sleep or a nearby surprising event (synaptic tagging and capture) | early/late LTP (Frey & Morris 1997 [known]); behavioural tagging (research/24) | retention vs interference, few-shot drop | 24, 2026-11-27 discussion |
 | 1 | **Delayed relearning check** in LIFE (relearning judged after sleep and after a further learning phase) | savings, desirable difficulties | benchmark validity for relearning | 22 |
 | 2 | **Context inference for stage-1 memory**: a reminder reactivates the old class's context | latent causes, COIN | relearning, few-shot drop | 19, 15 |
 | 3 | **Adaptive teacher vs curious learner vs random reminders** (equal budget) | tutoring / expertise reversal; curiosity = learning-progress reward | retention, relearning | 23 |
@@ -56,6 +53,8 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 | Idea | Result | From |
 |---|---|---|
 | Event boundaries removed (continuous stream); surprise self-segmentation | **adopted** stream (S2-8/9/F2: test online 0.924, all stage-2 criteria pass); self-segmentation rejected (reset kills context recruitment; binding-only over-segments) | 24 |
+| Spacing effect test | tested (R4-3): none in SPARC (massed ≈ spaced), it does not forget between sessions | 2026-11-27 |
+| Early / late LTP with capture by sleep or surprise | **rejected** (R4-3): no benefit, without capture Fashion FGT 14.0 | 24 |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |

@@ -1,0 +1,23 @@
+{
+ "model": "sparc",
+ "data": "mnist",
+ "seed": 1,
+ "split": "val",
+ "quick": false,
+ "cap": null,
+ "overrides": {},
+ "tag": "r4_3_space",
+ "FEW_base_old_acc": 0.9683991683991684,
+ "NOVELTY": 0.9275918517094988,
+ "surprise_mean_old_new": [
+  0.11620505154132843,
+  0.2224264144897461
+ ],
+ "SPACE_massed_early": 0.704201680672269,
+ "SPACE_massed_early_old_drop": 0.03617463617463612,
+ "SPACE_massed_late": 0.7378151260504202,
+ "SPACE_massed_late_old_drop": 0.03534303534303529,
+ "SPACE_spaced": 0.7142857142857143,
+ "SPACE_spaced_old_drop": 0.03201663201663196,
+ "wall_clock_s": 211.9596073627472
+}
