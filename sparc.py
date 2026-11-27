@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, early_ltp=False, e_tau=1000.0, tag_z=None,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, early_ltp=False, e_tau=1000.0, tag_z=None,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -100,6 +100,7 @@ class SPARC:
         # slow and largely sleep-dependent: Turrigiano; Tononi & Cirelli); newborn units are hyperexcitable at once
         self.ie_sleep = ie_sleep
         self.r_eff = np.zeros(self.N)
+        self.ie_rec = ie_rec      # SHY sleep: fraction of the down-regulation kept per night (<1: slow recovery over nights)
         self.blab = np.full(self.N, -1)      # birth label of each unit (engram tag; diagnostic unless engram_tag)
         # engram tag: consolidation merges units only within the memory they were formed for, so a fading
         # memory's units are never absorbed by a look-alike class (silent engram kept for reactivation)
@@ -445,7 +446,7 @@ class SPARC:
             self.Ae[:] = 0.0                               # sleep: early LTP consolidated into late LTP
         if self.ie_sleep:
             if self.ie_sleep == 'down':                    # SHY: sleep only down-regulates overused units
-                self.r_eff[:] = np.maximum(self.r_eff, self.r)
+                self.r_eff[:] = np.maximum(self.r + self.ie_rec * (self.r_eff - self.r), self.r)
             else:
                 self.r_eff[:] = self.r                     # sleep: homeostatic excitability catches up
         if self.merge_frac > 0 and self.merge_at_task_end and self.used > (1 - self.merge_frac) * self.N:

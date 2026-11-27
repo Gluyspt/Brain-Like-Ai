@@ -8,7 +8,7 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 | Idea | From | Note |
 |---|---|---|
 | Spacing effect test; early/late LTP with capture by sleep or surprise (0c, 0d) | 24 | R4-3, queued behind R4-2 |
-| Slower homeostasis (3 seeds), SHY down-scaling sleep, mid tau | 01, 15, 22, 24 | R4-2 (R4-1: slow homeostasis FEW5 +15 / +6 but old drop up; sleep catch-up undoes relearning) |
+| SHY sleep (3 seeds) + slow recovery across nights | 01, 15, 22, 24 | R4-4, queued (R4-2: SHY gives the first real savings, Fashion 73.5 → 91.0, MNIST FEW5 76.0, but old drop 5.9 / 4.0) |
 
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
