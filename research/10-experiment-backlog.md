@@ -10,7 +10,6 @@ All adopted + dormant flags on, then leave-one-out. Next one: when stage 1 adopt
 ## Running
 | Idea | From | Note |
 |---|---|---|
-| SHY sleep (3 seeds) + slow recovery across nights | 01, 15, 22, 24 | R4-4, queued (R4-2: SHY gives the first real savings, Fashion 73.5 → 91.0, MNIST FEW5 76.0, but old drop 5.9 / 4.0) |
 
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
@@ -58,6 +57,8 @@ All adopted + dormant flags on, then leave-one-out. Next one: when stage 1 adopt
 | Event boundaries removed (continuous stream); surprise self-segmentation | **adopted** stream (S2-8/9/F2: test online 0.924, all stage-2 criteria pass); self-segmentation rejected (reset kills context recruitment; binding-only over-segments) | 24 |
 | Spacing effect test | tested (R4-3): none in SPARC (massed ≈ spaced), it does not forget between sessions | 2026-11-27 |
 | Early / late LTP with capture by sleep or surprise | **dormant** (R4-3): no benefit alone (without capture Fashion FGT 14.0); partner: **selective capture of what the hippocampus replays in sleep** | 24 |
+| SHY down-scaling sleep (`ie_sleep=down`) | **candidate** (R4-2/4, 3 seeds): relearning → savings, MNIST FEW5 41.2 → 69.6, Fashion FGT 6.9 → 5.2; old-class drop 1.9 → 5.5 (MNIST), 2.3 → 3.7 (Fashion); needs a partner protecting old classes | 01, 22, 24 |
+| Slow recovery of excitability across nights (`ie_rec`) | **dormant** (R4-4): trades few-shot for old-class drop, no net gain | 01 |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |
