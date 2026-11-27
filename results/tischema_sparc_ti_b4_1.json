@@ -1,0 +1,15 @@
+{
+ "model": "sparc_ti",
+ "seed": 1,
+ "mode": "schema",
+ "overrides": {
+  "oracle": true
+ },
+ "tag": "b4",
+ "bridge": 4,
+ "within_before": 1.0,
+ "within_after": 1.0,
+ "mid_novel": 1.0,
+ "top_novel": 0.85,
+ "mid_top": 1.0
+}

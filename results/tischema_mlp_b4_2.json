@@ -1,0 +1,13 @@
+{
+ "model": "mlp",
+ "seed": 2,
+ "mode": "schema",
+ "overrides": {},
+ "tag": "b4",
+ "bridge": 4,
+ "within_before": 0.8533333333333334,
+ "within_after": 0.8066666666666666,
+ "mid_novel": 0.82,
+ "top_novel": 0.9166666666666666,
+ "mid_top": 1.0
+}

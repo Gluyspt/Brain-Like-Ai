@@ -1,0 +1,13 @@
+{
+ "model": "lookup",
+ "seed": 2,
+ "mode": "schema",
+ "overrides": {},
+ "tag": "b4",
+ "bridge": 4,
+ "within_before": 0.49333333333333335,
+ "within_after": 0.5733333333333334,
+ "mid_novel": 0.54,
+ "top_novel": 0.55,
+ "mid_top": 0.4
+}

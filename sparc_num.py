@@ -150,7 +150,7 @@ class TISPARC:
     transitive inference; cf. ordinal / rank coding in hippocampus and PFC). Choice = the item further up the
     map (with decision noise). Novel pairs are answered from the map, never from stored pairs.
     """
-    def __init__(self, seed=0, lr=0.15, noise=0.05, stage1_n=6000, oracle=False, linked=True, margin=0.3, map_age=50, **stage1):
+    def __init__(self, seed=0, lr=0.15, noise=0.05, stage1_n=6000, oracle=False, linked=True, margin=0.3, map_age=50, assimilate=True, **stage1):
         self.rng = np.random.RandomState(seed); self.lr, self.noise, self.stage1_n = lr, noise, stage1_n
         self.oracle = oracle      # True: use the true object identity (isolates relational learning from perception)
         self.pos = np.zeros(32)                # position of each item within its map
@@ -161,6 +161,11 @@ class TISPARC:
         self.off = {}                          # offset of each map
         self.age = {}                          # learning steps per map; only established maps link as wholes
         self.map_age = map_age
+        # schema assimilation (Tse et al. 2007; research/24): a new item met together with an item of an
+        # established map is placed into that map in one shot; the map itself does not move. Each new item
+        # keeps only two numbers: the highest value it beat (lo) and the lowest value that beat it (hi).
+        self.assimilate = assimilate
+        self.lo, self.hi = {}, {}
         self.s = SPARC(seed=seed, glimpses=1, **stage1)
 
     def setup(self, Xtr, ytr, rng):
@@ -196,6 +201,23 @@ class TISPARC:
                 self.off[mw] = self.off.get(mw, 0.0) + need / 2
                 self.off[ml] = self.off.get(ml, 0.0) - need / 2
             return
+        if self.assimilate and self.linked:
+            est = lambda x: (self._mapped(x) and x not in self.lo and x not in self.hi
+                             and self.age.get(self._map(x), 0) >= self.map_age)
+            newish = lambda x: not self._mapped(x) or x in self.lo or x in self.hi
+            if (est(l) and newish(w)) or (est(w) and newish(l)):
+                new, old = (w, l) if est(l) and newish(w) else (l, w)
+                v = self.value(old)
+                if new == w:
+                    self.lo[new] = max(self.lo.get(new, -np.inf), v)
+                else:
+                    self.hi[new] = min(self.hi.get(new, np.inf), v)
+                lo, hi = self.lo.get(new, -np.inf), self.hi.get(new, np.inf)
+                tgt = (lo + hi) / 2 if np.isfinite(lo) and np.isfinite(hi) else (lo + self.margin if np.isfinite(lo) else hi - self.margin)
+                r = self._map(old)
+                self.pos[new] = tgt - self.off.get(r, 0.0)     # one-shot placement in map coordinates
+                self.parent[new] = r                            # joins the map; the map does not move
+                return
         if self.linked:
             self._union(w, l)
             r = self._map(w); self.age[r] = self.age.get(r, 0) + 1

@@ -12,7 +12,6 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
 |---|---|---|---|---|
-| 0a | **Schema assimilation**: insert a new item into a learned list from one comparison; all relations should follow (cheap) | schema-dependent consolidation (Tse 2007) | understanding → fast learning | 24 |
 | 0b | **Event segmentation from surprise** in stage 2 (remove the given episode boundaries) (cheap) | infant statistical learning; event segmentation | stage-2 realism | 24 |
 | 1 | **Delayed relearning check** in LIFE (relearning judged after sleep and after a further learning phase) | savings, desirable difficulties | benchmark validity for relearning | 22 |
 | 2 | **Context inference for stage-1 memory**: a reminder reactivates the old class's context | latent causes, COIN | relearning, few-shot drop | 19, 15 |
@@ -55,6 +54,8 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Tested (results in docs/iteration-log.md)
 | Idea | Result | From |
 |---|---|---|
+| Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
+| Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |
 | Eye movements + trace rule | **adopted** (R2): Fashion FGT 9.5 → 6.3 | 14 |
 | Label-gated refinement | **adopted** (R3): small val gain, not on test | 13 |

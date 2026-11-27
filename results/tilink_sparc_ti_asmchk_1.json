@@ -1,0 +1,17 @@
+{
+ "model": "sparc_ti",
+ "seed": 1,
+ "mode": "link",
+ "overrides": {
+  "assimilate": true,
+  "oracle": true
+ },
+ "tag": "asmchk",
+ "bridge": 4,
+ "within_before": 1.0,
+ "cross_before": 0.5020408163265306,
+ "within_after": 1.0,
+ "cross_after": 1.0,
+ "cross_after_far": 1.0,
+ "cross_after_near": 1.0
+}

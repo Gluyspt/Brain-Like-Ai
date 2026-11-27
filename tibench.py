@@ -76,25 +76,56 @@ def run_link(a, model, rng):
     return res
 
 
+def run_schema(a, model, rng):
+    """Schema assimilation (Tse et al. 2007): learn a 7-item list (adjacent pairs), then two NEW items:
+    X_mid between ranks 3 and 4 (facts: item3 beats X, X beats item4) and X_top above the top (fact: X beats item0).
+    Each fact is shown `bridge` times. Test the new items against every old item never compared with them,
+    and the old list's own non-adjacent pairs (is the schema disturbed?)."""
+    L = list(rng.permutation(7)); xm, xt = 7, 8
+    rank = {it: float(r) for r, it in enumerate(L)}; rank[xm] = 3.5; rank[xt] = -1.0
+    def show(i, j):
+        if rng.rand() < 0.5: i, j = j, i
+        model.choose(i, j, None, None); model.feedback(i, j, None, None, i if rank[i] < rank[j] else j)
+    for _ in range(a.trials):
+        r = rng.randint(6); show(L[r], L[r + 1])
+    def test(pairs):
+        hits = []
+        for i, j in pairs:
+            for _ in range(10):
+                x, y = (i, j) if rng.rand() < 0.5 else (j, i)
+                hits.append(model.choose(x, y, None, None) == (x if rank[x] < rank[y] else y))
+        return float(np.mean(hits))
+    within = [(L[r], L[q]) for r in range(7) for q in range(r + 2, 7)]
+    res = {'within_before': test(within)}
+    for _ in range(a.bridge):
+        show(L[3], xm); show(xm, L[4]); show(xt, L[0])
+    res.update(within_after=test(within),
+               mid_novel=test([(xm, L[q]) for q in range(7) if q not in (3, 4)]),
+               top_novel=test([(xt, L[q]) for q in range(1, 7)]),
+               mid_top=test([(xm, xt)]))
+    return res
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--model', default='lookup'); ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--split', default='val', choices=['val', 'test']); ap.add_argument('--trials', type=int, default=600)
     ap.add_argument('--set', nargs='*', default=[]); ap.add_argument('--tag', default=''); ap.add_argument('--out', default='results')
-    ap.add_argument('--mode', default='ti', choices=['ti', 'link']); ap.add_argument('--bridge', type=int, default=4)
+    ap.add_argument('--mode', default='ti', choices=['ti', 'link', 'schema']); ap.add_argument('--bridge', type=int, default=4)
     a = ap.parse_args()
     from bench import parse_val
     ov = {k: parse_val(v) for k, v in (kv.split('=', 1) for kv in a.set)}
     rng = np.random.RandomState(a.seed)
-    if a.mode == 'link':
+    if a.mode in ('link', 'schema'):
         global N
-        N = 14
+        N = 14 if a.mode == 'link' else 9
         if a.model == 'sparc_ti':
             ov.setdefault('oracle', True)
         model = make(a.model, a.seed, ov)
-        res = dict(model=a.model, seed=a.seed, mode='link', overrides=ov, tag=a.tag, bridge=a.bridge, **run_link(a, model, rng))
+        run = run_link if a.mode == 'link' else run_schema
+        res = dict(model=a.model, seed=a.seed, mode=a.mode, overrides=ov, tag=a.tag, bridge=a.bridge, **run(a, model, rng))
         os.makedirs(a.out, exist_ok=True)
-        path = os.path.join(a.out, f"tilink_{a.model}{'_' + a.tag if a.tag else ''}_{a.seed}.json")
+        path = os.path.join(a.out, f"ti{a.mode}_{a.model}{'_' + a.tag if a.tag else ''}_{a.seed}.json")
         json.dump(res, open(path, 'w'), indent=1)
         print('  '.join(f'{k} {v:.3f}' for k, v in res.items() if isinstance(v, float)) + f'  wrote {path}')
         return
