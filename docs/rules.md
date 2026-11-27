@@ -6,6 +6,13 @@ Name the mechanism and the `research/` file it comes from in docs/iteration-log.
 
 **Copy the function, not the limitation** (user directive, 2026-11-27). Adopt a brain mechanism when it does a job (learning, protecting memories, generalising, thinking). Do not copy a weakness that exists only because of biology's costs (small capacity, slowness, forgetting with no benefit). When a brain limit is kept on purpose (e.g. fading memories), name the job it does (e.g. clearing noise, less interference, better generalisation; Richards & Frankland 2017 [known]) and show it measurably helps; otherwise drop it and log why. This refines the brain-first rule, it does not replace it: every mechanism must still come from the brain, and a change that only raises a score is still out.
 
+**Dormant, not rejected; test in combination** (user directive, 2026-11-27). Brain mechanisms often work only together with a partner (e.g. forgetting with consolidation, Richards & Frankland 2017; temporary synaptic changes with selective capture during replay, Clopath et al. 2008); one-at-a-time tests miss such pairs.
+1. **Never delete, switch off.** A brain-based mechanism that does not help alone becomes **dormant**: its code stays behind a flag (default off), and its backlog row names the partner it probably needs. **Rejected** is kept for things that are broken, not brain-like, or still harmful when tested with their partner.
+2. **Re-test when the partner arrives.** When a dormant mechanism's partner is adopted, re-run it with that partner.
+3. **Combination round** at the end of each round: run all adopted + dormant mechanisms together, then leave-one-out (switch off one at a time) to see what still pulls its weight and which ones only work together.
+4. **Suspected pairs get a 2×2 test**: neither, A alone, B alone, A+B.
+Do not switch everything on at once as a normal step: with many mechanisms a bad result cannot be traced, and one bug spoils every number.
+
 ## Reporting comparisons (user directive, 2026-11-27)
 Every comparison, in chat and in docs, shows **old (baseline) vs new** side by side, each labelled with what it is (config name, split, seeds), with the metric name and its direction (higher / lower is better), and the change.
 

@@ -2,7 +2,10 @@
 
 Rule (docs/rules.md, user directive 2026-11-27): every research idea worth trying gets tested, unless (1) more important current-stage work comes first, in which case it is **queued** in priority order, or (2) it belongs to a later stage, in which case it is **parked** with a stage tag. Every idea has a status and a reason. Results go back into the research note and docs/iteration-log.md.
 
-Status values: **running**, **queued** (with priority), **tested** (result), **adopted**, **rejected**, **parked → stage N**.
+Status values: **running**, **queued** (with priority), **tested** (result), **adopted**, **dormant** (flag kept off; partner it probably needs), **rejected** (broken, not brain-like, or harmful even with its partner), **parked → stage N**.
+
+## Combination round (end of each round)
+All adopted + dormant flags on, then leave-one-out. Next one: when stage 1 adopts its next change. Fair re-test queued: **early LTP + selective capture of replayed hippocampal traces during sleep** (after R4-4).
 
 ## Running
 | Idea | From | Note |
@@ -54,7 +57,7 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 |---|---|---|
 | Event boundaries removed (continuous stream); surprise self-segmentation | **adopted** stream (S2-8/9/F2: test online 0.924, all stage-2 criteria pass); self-segmentation rejected (reset kills context recruitment; binding-only over-segments) | 24 |
 | Spacing effect test | tested (R4-3): none in SPARC (massed ≈ spaced), it does not forget between sessions | 2026-11-27 |
-| Early / late LTP with capture by sleep or surprise | **rejected** (R4-3): no benefit, without capture Fashion FGT 14.0 | 24 |
+| Early / late LTP with capture by sleep or surprise | **dormant** (R4-3): no benefit alone (without capture Fashion FGT 14.0); partner: **selective capture of what the hippocampus replays in sleep** | 24 |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |
@@ -63,12 +66,12 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 | V1 critical-period closure | **adopted** (It 9) | 01 |
 | V2 layer | tested (R2-1): helps MNIST few-shot / Fashion, not CIFAR; not adopted | 09 |
 | Error-driven IT tuning (LVQ-like) | **rejected** (R2-2a): reverses over long streams | 13 |
-| Two-hemisphere V1, concatenated | **rejected** (It 10) | 04 |
-| KC pathway as a third vote | **rejected** (It 8) | 02 |
+| Two-hemisphere V1, concatenated | **dormant** (It 10); partner: learned hemispheric gate (P18) | 04 |
+| KC pathway as a third vote | **dormant** (It 8); partner: reserved for few-shot classes (P9) | 02 |
 | Episodic recall at answer time (ungated / gated / margin) | tested (R2-5, R2-6): trade-off curve; not adopted | 16 |
 | Retrieval-triggered reconsolidation | tested (R2-4): partial relearning gain, hurts main stream | 15 |
-| Engram tags (silent engrams) | **rejected** (R3-1): no effect | 15 |
-| Per-synapse metaplasticity | tested (R3-2): halves MNIST drop, not adopted alone | 15 |
+| Engram tags (silent engrams) | **dormant** (R3-1): no effect alone; partner: context inference for stage 1 (P2) | 15 |
+| Per-synapse metaplasticity | **dormant** (R3-2): halves MNIST drop alone, raised Fashion FGT with label gate; partner: retrieval reopening / context inference | 15 |
 | Temporal predictor + context inference | **adopted** as stage 2 | 08, 19 |
 | Number sense, transitive inference, list linking, same/different | **adopted** as stage 3 | 17, 20 |
 | GDumb baseline, CIFAR-10 check | done (B5, C1) | 12 |
