@@ -104,9 +104,11 @@ def auroc(neg, pos):
     return float((r[len(neg):].sum() - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg)))
 
 
-def run_seq(model, pool, seq, learn=True, record=False):
-    """Present a class sequence; returns per-step (correct prediction, surprise)."""
-    model.reset_context()
+def run_seq(model, pool, seq, learn=True, record=False, reset=True):
+    """Present a class sequence; returns per-step (correct prediction, surprise). reset=False: no event
+    boundary is given before it (the stream continues; the model must segment it itself)."""
+    if reset:
+        model.reset_context()
     hits, surp = [], []
     for t, c in enumerate(seq):
         if t >= 2:
@@ -127,6 +129,8 @@ def main():
     ap.add_argument('--split', default='val', choices=['val', 'test'])
     ap.add_argument('--steps', type=int, default=3000)
     ap.add_argument('--episode', type=int, default=30, help='items per training episode (event boundaries between)')
+    ap.add_argument('--boundaries', default='given', choices=['given', 'none'],
+                    help='none: training is one continuous stream, episode jumps are not signalled')
     ap.add_argument('--set', nargs='*', default=[])
     ap.add_argument('--tag', default='')
     ap.add_argument('--out', default='results')
@@ -138,7 +142,8 @@ def main():
     train_pool, eval_pool = Pool(Xtr, ytr, rng), Pool(Xev, yev, np.random.RandomState(a.seed + 1))
     model = make(a.model, a.seed, ov)
     T0 = time.time()
-    res = dict(model=a.model, seed=a.seed, split=a.split, steps=a.steps, overrides=ov, tag=a.tag, worlds=list(WORLDS))
+    res = dict(model=a.model, seed=a.seed, split=a.split, steps=a.steps, overrides=ov, tag=a.tag, worlds=list(WORLDS),
+               boundaries=a.boundaries)
     names = list(WORLDS)
     online = {}
     # 1) learn the worlds one after another (online, single pass). Each world is experienced as episodes of
@@ -148,7 +153,7 @@ def main():
         hits = []
         for _ in range(a.steps // a.episode):
             seq, _ = gen(w, a.episode, rng)
-            h, _ = run_seq(model, train_pool, seq, learn=True)
+            h, _ = run_seq(model, train_pool, seq, learn=True, reset=a.boundaries == 'given')
             hits += list(h)
         online[w] = float(np.mean(hits[-500:]))
         print(f'  learn {w}: last-500 next-item acc {online[w]:.3f}', flush=True)
@@ -190,7 +195,8 @@ def main():
                mean_online=float(np.mean(list(online.values()))), mean_retention=float(np.mean(list(ret.values()))),
                mean_violation=float(np.mean([v for v in viol.values() if v is not None])),
                mean_completion=float(np.mean([comp[w] for w in names])),
-               mean_completion5=float(np.mean([comp[w + '_from5'] for w in names])), wall_clock_s=time.time() - T0)
+               mean_completion5=float(np.mean([comp[w + '_from5'] for w in names])), wall_clock_s=time.time() - T0,
+               n_seg=getattr(model, 'n_seg', None), n_ctx_new=getattr(model, 'n_ctx_new', None))
     os.makedirs(a.out, exist_ok=True)
     path = os.path.join(a.out, f"seq_{a.model}{'_' + a.tag if a.tag else ''}_{a.seed}_{a.split}.json")
     json.dump(res, open(path, 'w'), indent=1)

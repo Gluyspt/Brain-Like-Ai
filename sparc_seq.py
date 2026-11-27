@@ -156,12 +156,16 @@ class CtxSeqSPARC(SeqSPARC):
     hippocampal remapping. research/17.
     """
 
-    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, min_age=0, **kw):
+    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, min_age=0, seg_thr=None, seg_age=200, **kw):
         kw.setdefault('ctx', 'q'); kw.setdefault('use_h', False); kw.setdefault('meta', True)
         super().__init__(seed=seed, **kw)
         self.K, self.lam, self.ctx_vig, self.grace = K, lam, ctx_vig, grace
         self.min_age = min_age   # a context must have learned this many steps before its failure can recruit a new one
         self.n_ctx_new = 0
+        # event segmentation from surprise (Zacks et al. 2007 event segmentation theory; DuBrow & Davachi 2013:
+        # less binding across boundaries; research/24): when an established context badly fails to predict the
+        # item, the model marks an event boundary itself, does not learn that transition, and starts afresh
+        self.seg_thr, self.seg_age, self.n_seg = seg_thr, seg_age, 0
 
     def _init(self):
         super()._init()
@@ -199,7 +203,14 @@ class CtxSeqSPARC(SeqSPARC):
             ll = np.log(pk @ q_obs + 1e-6)
             self.score[:self.used_k] = (1 - self.lam) * self.score[:self.used_k] + self.lam * ll
             self._s = 1.0 - float(pk[self.active] @ q_obs)
-            if learn and self._last_z is not None:
+            boundary = (self.seg_thr is not None and learn and self.age[self.active] >= self.seg_age
+                        and float(pk[self.active] @ q_obs) < self.seg_thr)
+            if boundary:
+                self.n_seg += 1
+                self.score[:] = 0.0                  # new event: context evidence starts afresh
+                self._qc = None                      # no binding across the boundary
+                self.prev = None
+            elif learn and self._last_z is not None:
                 self.since_new += 1
                 best = int(np.argmax(self.score[:self.used_k]))
                 if (self.score[best] < self.ctx_vig and self.since_new > self.grace and self.used_k < self.K
