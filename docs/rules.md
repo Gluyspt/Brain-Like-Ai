@@ -4,6 +4,8 @@
 Every step or decision about the model or its training must make it act more like a real brain. Name the brain mechanism behind each change in docs/iteration-log.md. A change that only raises an accuracy number with no brain analogue does not belong here, even if it scores better; when a brain-like and a score-only option compete, pick the brain-like one and log the cost. Accuracy targets (goal.md §4) are checks that the brain-like machinery works, not the objective.
 Name the mechanism and the `research/` file it comes from in docs/iteration-log.md.
 
+**Copy the function, not the limitation** (user directive, 2026-11-27). Adopt a brain mechanism when it does a job (learning, protecting memories, generalising, thinking). Do not copy a weakness that exists only because of biology's costs (small capacity, slowness, forgetting with no benefit). When a brain limit is kept on purpose (e.g. fading memories), name the job it does (e.g. clearing noise, less interference, better generalisation; Richards & Frankland 2017 [known]) and show it measurably helps; otherwise drop it and log why. This refines the brain-first rule, it does not replace it: every mechanism must still come from the brain, and a change that only raises a score is still out.
+
 ## Research → test rule (user directive, 2026-11-27)
 Every research finding that suggests something worth trying **gets tested**, unless one of two exceptions applies:
 1. **More important work comes first**: something already in progress, or a fix for a failing criterion of the current stage, has priority. The idea waits in the queue, then runs.
