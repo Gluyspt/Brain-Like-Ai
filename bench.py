@@ -99,7 +99,7 @@ def main():
     ap.add_argument('--cap', type=int, default=None, help='cap train at N samples per class (data-scaling runs)')
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
     ap.add_argument('--tag', default='')
-    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life,space')
+    ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life,space,sleepwake (sleepwake needs life)')
     ap.add_argument('--out', default='results')
     a = ap.parse_args()
 
@@ -318,6 +318,26 @@ def main():
             rcurve.append((s + len(ridx[s:s + 10]), v))
             if n_re is None and v >= thr:
                 n_re = s + len(ridx[s:s + 10])
+        if 'sleepwake' in parts:
+            # sleep vs equal wake (Jenkins & Dallenbach 1924; Diekelmann & Born 2010): after relearning, copies of
+            # the model get (a) a night's sleep, (b) a day awake (200 ordinary images of the other classes),
+            # (c) sleep then the day, (d) the day then sleep; test the relearned task and the other classes.
+            # Human signature: sleep loses less than wake, and sleeping first protects against the day's interference.
+            wrng = np.random.RandomState(a.seed + 700)
+            day = wrng.choice(np.concatenate([stream_c[c] for c in others]), 200, replace=False)
+            sw_saved = model
+            for arm, steps in (('immediate', ''), ('sleep', 'S'), ('wake', 'W'), ('sleep_then_wake', 'SW'), ('wake_then_sleep', 'WS')):
+                m = copy.deepcopy(sw_saved)
+                for st in steps:
+                    if st == 'S':
+                        m.end_task()
+                    else:
+                        feed(m, Xtr, ytr, day)
+                model = m
+                res[f'SW_{arm}'] = pacc(jt, all_cls)
+                res[f'SW_{arm}_other'] = acc_on(m, Xev, yev, others, all_cls)
+                print(f"  SLEEP/WAKE {arm}: relearned task {res[f'SW_{arm}']:.3f}  other classes {res[f'SW_{arm}_other']:.4f}", flush=True)
+            model = sw_saved
         model.end_task()             # a night's sleep after relearning: consolidation into the slow readout
         res['SAV_after_sleep'] = pacc(jt, all_cls)
         res['SAV_other_drop_after_sleep'] = other_before - acc_on(model, Xev, yev, others, all_cls)

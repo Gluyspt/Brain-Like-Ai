@@ -1,0 +1,12 @@
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 0 --data fashion --tag r4_5_sw > logs/r4_5_sw_fashion0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 0 --data fashion --tag r4_5_sw_shy --set ie_sleep=down > logs/r4_5_swshy_fashion0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 1 --data fashion --tag r4_5_sw > logs/r4_5_sw_fashion1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 1 --data fashion --tag r4_5_sw_shy --set ie_sleep=down > logs/r4_5_swshy_fashion1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 2 --data fashion --tag r4_5_sw > logs/r4_5_sw_fashion2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 2 --data fashion --tag r4_5_sw_shy --set ie_sleep=down > logs/r4_5_swshy_fashion2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 0 --data mnist --tag r4_5_sw > logs/r4_5_sw_mnist0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 0 --data mnist --tag r4_5_sw_shy --set ie_sleep=down > logs/r4_5_swshy_mnist0.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 1 --data mnist --tag r4_5_sw > logs/r4_5_sw_mnist1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 1 --data mnist --tag r4_5_sw_shy --set ie_sleep=down > logs/r4_5_swshy_mnist1.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 2 --data mnist --tag r4_5_sw > logs/r4_5_sw_mnist2.log 2>&1
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --seed 2 --data mnist --tag r4_5_sw_shy --set ie_sleep=down > logs/r4_5_swshy_mnist2.log 2>&1
