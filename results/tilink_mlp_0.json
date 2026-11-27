@@ -1,0 +1,14 @@
+{
+ "model": "mlp",
+ "seed": 0,
+ "mode": "link",
+ "overrides": {},
+ "tag": "",
+ "bridge": 4,
+ "within_before": 0.89,
+ "cross_before": 0.47959183673469385,
+ "within_after": 0.8233333333333334,
+ "cross_after": 0.5571428571428572,
+ "cross_after_far": 0.8222222222222222,
+ "cross_after_near": 0.15
+}

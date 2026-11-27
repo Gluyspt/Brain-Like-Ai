@@ -1,0 +1,17 @@
+{
+ "model": "sparc_ti",
+ "seed": 1,
+ "mode": "link",
+ "overrides": {
+  "linked": true,
+  "oracle": true
+ },
+ "tag": "linked",
+ "bridge": 4,
+ "within_before": 1.0,
+ "cross_before": 0.5489795918367347,
+ "within_after": 1.0,
+ "cross_after": 0.6693877551020408,
+ "cross_after_far": 1.0,
+ "cross_after_near": 0.0
+}

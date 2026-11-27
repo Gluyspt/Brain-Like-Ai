@@ -161,6 +161,14 @@ Dehaene's triple code (research/20): the stage-1 visual digit form; an innate ap
 
 It adds pairs it never practised, where memorising models are at chance; the remaining errors are digit recognition and the approximate dot counter.
 
+**Relations and cognitive maps** (`tibench.py`, `TISPARC`): items get positions on a learned 1-D map from dopamine-like prediction errors; items belong to maps, and a fact linking two established maps shifts both in one shot (structure vs content, Tolman–Eichenbaum style).
+
+| val, 3 seeds | transitive inference: novel pairs (from images) | list linking: cross-list pairs after **one** bridge fact |
+|---|---|---|
+| lookup | 0.51 | 0.51–0.54 |
+| backprop MLP | 0.98 | 0.56–0.60 |
+| **SPARC maps** | **0.97–1.00** (symbolic distance effect) | **1.00** (within-list order intact) |
+
 ## 4. Limits and honest gaps
 
 1. **MNIST few-shot (M5) fails badly: 43.6 % vs 70 %.** 5-shot 8/9 must be told apart from well-learned 3/5/4/7. Diagnosis: even a nearest-class-mean on the V1 features gets only ~66 %, so a single learned feature layer is the limit. Excitability, CLS deferral and a fly-like Kenyon-cell pathway each moved it by ≤ 6 pts. Fashion few-shot passes (79.8 %). Round 2: a V2 layer (+10 on a quick screen) and CLS-gated episodic recall (82 % on a quick screen, but old classes lose 10–14 pts) show it can be raised, but not yet without hurting old classes. Fix direction: deeper local hierarchy (docs/roadmap.md #2).

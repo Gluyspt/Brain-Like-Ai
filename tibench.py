@@ -44,15 +44,60 @@ def make(name, seed, ov):
     raise ValueError(name)
 
 
+def run_link(a, model, rng):
+    """List linking: learn list A and list B separately (adjacent pairs), then ONE bridge fact (last of A beats
+    first of B); test within-list and cross-list pairs. Items are identified directly (oracle identities) to
+    isolate relational learning. 14 items: 0–6 = list A, 7–13 = list B, ranks hidden by random orders."""
+    A = list(rng.permutation(7)); B = list(7 + rng.permutation(7))
+    rank = {it: r for r, it in enumerate(A)}; rank.update({it: 7 + r for r, it in enumerate(B)})
+    def train(lst, trials):
+        for _ in range(trials):
+            r = rng.randint(len(lst) - 1); i, j = lst[r], lst[r + 1]
+            if rng.rand() < 0.5: i, j = j, i
+            model.choose(i, j, None, None); model.feedback(i, j, None, None, i if rank[i] < rank[j] else j)
+    train(A, a.trials); train(B, a.trials)
+    def test(pairs):
+        hits = []
+        for i, j in pairs:
+            for _ in range(10):
+                x, y = (i, j) if rng.rand() < 0.5 else (j, i)
+                hits.append(model.choose(x, y, None, None) == (x if rank[x] < rank[y] else y))
+        return float(np.mean(hits))
+    within = [(A[r], A[q]) for r in range(7) for q in range(r + 2, 7)] + [(B[r], B[q]) for r in range(7) for q in range(r + 2, 7)]
+    cross = [(x, y) for x in A for y in B]
+    res = {'within_before': test(within), 'cross_before': test(cross)}
+    for _ in range(a.bridge):                              # the single bridge fact, shown a few times
+        i, j = A[-1], B[0]
+        if rng.rand() < 0.5: i, j = j, i
+        model.choose(i, j, None, None); model.feedback(i, j, None, None, A[-1])
+    res.update(within_after=test(within), cross_after=test(cross),
+               cross_after_far=test([(x, y) for x in A[:3] for y in B[-3:]]),
+               cross_after_near=test([(x, y) for x in A[-3:] for y in B[:3] if not (x == A[-1] and y == B[0])]))
+    return res
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--model', default='lookup'); ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--split', default='val', choices=['val', 'test']); ap.add_argument('--trials', type=int, default=600)
     ap.add_argument('--set', nargs='*', default=[]); ap.add_argument('--tag', default=''); ap.add_argument('--out', default='results')
+    ap.add_argument('--mode', default='ti', choices=['ti', 'link']); ap.add_argument('--bridge', type=int, default=4)
     a = ap.parse_args()
     from bench import parse_val
     ov = {k: parse_val(v) for k, v in (kv.split('=', 1) for kv in a.set)}
     rng = np.random.RandomState(a.seed)
+    if a.mode == 'link':
+        global N
+        N = 14
+        if a.model == 'sparc_ti':
+            ov.setdefault('oracle', True)
+        model = make(a.model, a.seed, ov)
+        res = dict(model=a.model, seed=a.seed, mode='link', overrides=ov, tag=a.tag, bridge=a.bridge, **run_link(a, model, rng))
+        os.makedirs(a.out, exist_ok=True)
+        path = os.path.join(a.out, f"tilink_{a.model}{'_' + a.tag if a.tag else ''}_{a.seed}.json")
+        json.dump(res, open(path, 'w'), indent=1)
+        print('  '.join(f'{k} {v:.3f}' for k, v in res.items() if isinstance(v, float)) + f'  wrote {path}')
+        return
     Xtr, ytr, Xev, yev = load('fashion', a.split)
     order = rng.permutation(N)                      # object order[r] has rank r (0 = highest)
     rank = np.empty(N, int); rank[order] = np.arange(N)

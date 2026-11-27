@@ -1,0 +1,14 @@
+{
+ "model": "lookup",
+ "seed": 2,
+ "mode": "link",
+ "overrides": {},
+ "tag": "",
+ "bridge": 4,
+ "within_before": 0.5166666666666667,
+ "cross_before": 0.5040816326530613,
+ "within_after": 0.49333333333333335,
+ "cross_after": 0.5163265306122449,
+ "cross_after_far": 0.5444444444444444,
+ "cross_after_near": 0.525
+}

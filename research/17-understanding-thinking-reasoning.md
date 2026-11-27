@@ -14,6 +14,7 @@ Background for the ultimate goal (goal.md §0) and the stage ladder (docs/roadma
 - The same machinery maps **abstract** spaces (social hierarchies, concepts): Constantinescu, O'Reilly & Behrens 2016; Behrens et al. 2018, "What is a cognitive map?", *Neuron*.
 - **Tolman–Eichenbaum Machine**: Whittington et al. 2020 separates structure (entorhinal) from content (hippocampus), so a learned structure transfers to new items.
 - **For SPARC**: transitive inference and structure-transfer tasks; a structure code separate from the item code.
+- **Done (S3-3/S3-4)**: an ordinal map learned by dopamine-like prediction errors gives transitive inference with a distance effect; with **maps as units** (items belong to maps; a fact linking two established maps shifts them in one shot), one bridge fact links two separately learned lists perfectly, which backprop and plain value learners cannot do. List linking in monkeys and humans: Treichler & Van Tilburg 1996; hippocampal account: Kumaran & McClelland 2012 (REMERGE) [known].
 
 ## Thinking as working memory (stage 4)
 - PFC persistent activity holds goals and items: Goldman-Rakic 1995; Miller & Cohen 2001 (research/05).

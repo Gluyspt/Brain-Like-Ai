@@ -150,10 +150,17 @@ class TISPARC:
     transitive inference; cf. ordinal / rank coding in hippocampus and PFC). Choice = the item further up the
     map (with decision noise). Novel pairs are answered from the map, never from stored pairs.
     """
-    def __init__(self, seed=0, lr=0.15, noise=0.05, stage1_n=6000, oracle=False, **stage1):
+    def __init__(self, seed=0, lr=0.15, noise=0.05, stage1_n=6000, oracle=False, linked=True, margin=0.3, map_age=50, **stage1):
         self.rng = np.random.RandomState(seed); self.lr, self.noise, self.stage1_n = lr, noise, stage1_n
         self.oracle = oracle      # True: use the true object identity (isolates relational learning from perception)
-        self.pos = np.zeros(10)
+        self.pos = np.zeros(32)                # position of each item within its map
+        # structure vs content (Tolman-Eichenbaum-style): items belong to maps (lists = connected groups of
+        # items learned together); each map has its own offset. A fact linking two maps moves the whole map.
+        self.linked, self.margin = linked, margin
+        self.parent = {}                       # union-find over items trained together -> map membership
+        self.off = {}                          # offset of each map
+        self.age = {}                          # learning steps per map; only established maps link as wholes
+        self.map_age = map_age
         self.s = SPARC(seed=seed, glimpses=1, **stage1)
 
     def setup(self, Xtr, ytr, rng):
@@ -169,7 +176,7 @@ class TISPARC:
 
     def choose(self, i, j, xi, xj):
         a, b = (i, j) if self.oracle else (self._rec(xi), self._rec(xj))
-        da = self.pos[a] + self.noise * self.rng.randn(); db = self.pos[b] + self.noise * self.rng.randn()
+        da = self.value(a) + self.noise * self.rng.randn(); db = self.value(b) + self.noise * self.rng.randn()
         return i if da >= db else j
 
     def feedback(self, i, j, xi, xj, winner):
@@ -177,7 +184,53 @@ class TISPARC:
         w, l = (a, b) if winner == i else (b, a)
         if w == l:
             return
-        p = 1.0 / (1.0 + np.exp(-(self.pos[w] - self.pos[l]) / 0.1))     # predicted P(w above l)
+        p = 1.0 / (1.0 + np.exp(-(self.value(w) - self.value(l)) / 0.1))  # predicted P(w above l)
         err = 1.0 - p                                                      # prediction error (dopamine-like)
+        if (self.linked and self._mapped(w) and self._mapped(l) and self._map(w) != self._map(l)
+                and self.age.get(self._map(w), 0) >= self.map_age and self.age.get(self._map(l), 0) >= self.map_age):
+            # the two items live in different, already-formed maps: the error moves the whole maps
+            # one-shot: shift both maps just enough that the linking fact holds with a margin
+            mw, ml = self._map(w), self._map(l)
+            need = self.value(l) - self.value(w) + self.margin
+            if need > 0:
+                self.off[mw] = self.off.get(mw, 0.0) + need / 2
+                self.off[ml] = self.off.get(ml, 0.0) - need / 2
+            return
+        if self.linked:
+            self._union(w, l)
+            r = self._map(w); self.age[r] = self.age.get(r, 0) + 1
         self.pos[w] += self.lr * err
         self.pos[l] -= self.lr * err
+
+    # ---- maps (structure) ----
+    def _find(self, x):
+        while self.parent.get(x, x) != x:
+            x = self.parent[x]
+        return x
+
+    def _mapped(self, x):
+        return x in self.parent
+
+    def _map(self, x):
+        return self._find(x)
+
+    def _union(self, x, y):
+        """Merge two forming maps; members of the absorbed map keep their current values."""
+        for z in (x, y):
+            self.parent.setdefault(z, z)
+        rx, ry = self._find(x), self._find(y)
+        if rx == ry:
+            return
+        shift = self.off.get(ry, 0.0) - self.off.get(rx, 0.0)
+        for z in list(self.parent):
+            if self._find(z) == ry:
+                self.pos[z] += shift
+        self.parent[ry] = rx
+        self.age[rx] = self.age.get(rx, 0) + self.age.pop(ry, 0)
+        self.off.pop(ry, None)
+
+    def value(self, x):
+        v = self.pos[x]
+        if self.linked and self._mapped(x):
+            v += self.off.get(self._map(x), 0.0)
+        return v
