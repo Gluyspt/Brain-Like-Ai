@@ -6,6 +6,9 @@ Name the mechanism and the `research/` file it comes from in docs/iteration-log.
 
 **Copy the function, not the limitation** (user directive, 2026-11-27). Adopt a brain mechanism when it does a job (learning, protecting memories, generalising, thinking). Do not copy a weakness that exists only because of biology's costs (small capacity, slowness, forgetting with no benefit). When a brain limit is kept on purpose (e.g. fading memories), name the job it does (e.g. clearing noise, less interference, better generalisation; Richards & Frankland 2017 [known]) and show it measurably helps; otherwise drop it and log why. This refines the brain-first rule, it does not replace it: every mechanism must still come from the brain, and a change that only raises a score is still out.
 
+## Reporting comparisons (user directive, 2026-11-27)
+Every comparison, in chat and in docs, shows **old (baseline) vs new** side by side, each labelled with what it is (config name, split, seeds), with the metric name and its direction (higher / lower is better), and the change.
+
 ## Research → test rule (user directive, 2026-11-27)
 Every research finding that suggests something worth trying **gets tested**, unless one of two exceptions applies:
 1. **More important work comes first**: something already in progress, or a fix for a failing criterion of the current stage, has priority. The idea waits in the queue, then runs.
