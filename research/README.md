@@ -35,6 +35,7 @@ Each file covers one brain system or theme, with the same sections:
 | [20-number-sense.md](20-number-sense.md) | number sense, number line, symbol grounding, how children learn addition | stage-3 first benchmark |
 | [21-memo-memory-as-a-model.md](21-memo-memory-as-a-model.md) | MeMo ("Memory as a Model", 2026) vs SPARC: memory/reasoning split at LLM scale | related work; stage 4–6 ideas |
 | [22-how-humans-relearn.md](22-how-humans-relearn.md) | savings, U-shaped learning, desirable difficulties, levels of processing | relearning judged after consolidation |
+| [23-individual-differences-and-teaching.md](23-individual-differences-and-teaching.md) | learning-styles myth; prior knowledge, tutoring, self-explanation, curiosity, curriculum | adaptive teacher + curious learner ideas |
 | [12-prior-attempts-and-warnings.md](12-prior-attempts-and-warnings.md) | who tried this before (ART, Leabra, Spaun, HTM, Human Brain Project, bio-plausible backprop) and the warnings | read before claiming results |
 
 ## Rules for these notes
