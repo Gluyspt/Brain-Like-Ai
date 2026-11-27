@@ -156,7 +156,7 @@ class CtxSeqSPARC(SeqSPARC):
     hippocampal remapping. research/17.
     """
 
-    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, min_age=0, seg_thr=None, seg_age=200, **kw):
+    def __init__(self, seed=0, K=8, lam=0.2, ctx_vig=-1.6, grace=30, min_age=0, seg_thr=None, seg_age=200, seg_reset=True, **kw):
         kw.setdefault('ctx', 'q'); kw.setdefault('use_h', False); kw.setdefault('meta', True)
         super().__init__(seed=seed, **kw)
         self.K, self.lam, self.ctx_vig, self.grace = K, lam, ctx_vig, grace
@@ -165,7 +165,7 @@ class CtxSeqSPARC(SeqSPARC):
         # event segmentation from surprise (Zacks et al. 2007 event segmentation theory; DuBrow & Davachi 2013:
         # less binding across boundaries; research/24): when an established context badly fails to predict the
         # item, the model marks an event boundary itself, does not learn that transition, and starts afresh
-        self.seg_thr, self.seg_age, self.n_seg = seg_thr, seg_age, 0
+        self.seg_thr, self.seg_age, self.n_seg, self.seg_reset = seg_thr, seg_age, 0, seg_reset
 
     def _init(self):
         super()._init()
@@ -207,7 +207,8 @@ class CtxSeqSPARC(SeqSPARC):
                         and float(pk[self.active] @ q_obs) < self.seg_thr)
             if boundary:
                 self.n_seg += 1
-                self.score[:] = 0.0                  # new event: context evidence starts afresh
+                if self.seg_reset:
+                    self.score[:] = 0.0              # new event: context evidence starts afresh
                 self._qc = None                      # no binding across the boundary
                 self.prev = None
             elif learn and self._last_z is not None:
