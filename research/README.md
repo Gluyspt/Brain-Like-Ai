@@ -36,6 +36,7 @@ Each file covers one brain system or theme, with the same sections:
 | [21-memo-memory-as-a-model.md](21-memo-memory-as-a-model.md) | MeMo ("Memory as a Model", 2026) vs SPARC: memory/reasoning split at LLM scale | related work; stage 4–6 ideas |
 | [22-how-humans-relearn.md](22-how-humans-relearn.md) | savings, U-shaped learning, desirable difficulties, levels of processing | relearning judged after consolidation |
 | [23-individual-differences-and-teaching.md](23-individual-differences-and-teaching.md) | learning-styles myth; prior knowledge, tutoring, self-explanation, curiosity, curriculum | adaptive teacher + curious learner ideas |
+| [24-learning-progress-mechanisms.md](24-learning-progress-mechanisms.md) | BTSP, schemas, memory allocation, tagging, NREM/REM, infant statistical learning | 4 queued, 2 parked |
 | [12-prior-attempts-and-warnings.md](12-prior-attempts-and-warnings.md) | who tried this before (ART, Leabra, Spaun, HTM, Human Brain Project, bio-plausible backprop) and the warnings | read before claiming results |
 
 ## Rules for these notes

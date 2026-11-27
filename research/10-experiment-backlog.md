@@ -12,6 +12,8 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 ## Queued: current stages 1–3, in priority order
 | P | Idea | Brain mechanism | Target | From |
 |---|---|---|---|---|
+| 0a | **Schema assimilation**: insert a new item into a learned list from one comparison; all relations should follow (cheap) | schema-dependent consolidation (Tse 2007) | understanding → fast learning | 24 |
+| 0b | **Event segmentation from surprise** in stage 2 (remove the given episode boundaries) (cheap) | infant statistical learning; event segmentation | stage-2 realism | 24 |
 | 1 | **Delayed relearning check** in LIFE (relearning judged after sleep and after a further learning phase) | savings, desirable difficulties | benchmark validity for relearning | 22 |
 | 2 | **Context inference for stage-1 memory**: a reminder reactivates the old class's context | latent causes, COIN | relearning, few-shot drop | 19, 15 |
 | 3 | **Adaptive teacher vs curious learner vs random reminders** (equal budget) | tutoring / expertise reversal; curiosity = learning-progress reward | retention, relearning | 23 |
@@ -20,6 +22,8 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 | 6 | **Prioritised replay** of currently confused classes in sleep | hippocampal replay prioritisation | Fashion FGT, few-shot drop | 03 |
 | 7 | **IT-level sleep replay** (re-align prototypes and readouts) | sleep replay, synaptic homeostasis | Fashion FGT | 03 |
 | 8 | **Self-testing in sleep** (predict and check stored traces, like self-explanation) | retrieval practice, self-explanation | retention | 23 |
+| 8b | **BTSP-like one-shot binding** for few-shot classes (plateau-gated, seconds-scale eligibility, bidirectional) | BTSP | few-shot, old-class drop | 24 |
+| 8c | **Behavioural tagging**: keep hippocampal traces of weakly learned items when a surprising event occurs nearby | tag and capture, dopamine | few-shot retention | 24 |
 | 9 | **KC readout reserved for few-shot classes** (near-zero old-class drop in It 8) | fly mushroom body | few-shot old-class drop | 02 |
 | 10 | **Learned hippocampal write gate** (value of a trace = did replaying it reduce errors) | basal-ganglia gating, dopamine | memory efficiency, old-class drop | 07 |
 | 11 | **Separate ACh / NE modulators** (expected vs unexpected uncertainty) | Yu & Dayan | reversal speed, stability | 01 |
@@ -40,6 +44,8 @@ Status values: **running**, **queued** (with priority), **tested** (result), **a
 | 4 | CA3-style pattern completion from partial codes | 03 |
 | 5 | **Reward instead of labels** (dopamine RPE as the modulator); curiosity-driven exploration | 07, 23 |
 | 5 | Thinking as simulation: roll out the stage-2 predictor to plan (mazes, shortcuts) | 17 |
+| 2–4 | **Memory linking in time** (events close in time share neurons via transient excitability) | 24 |
+| 5 | **REM-like recombination phase** in sleep (insight) | 24 |
 | 6 | **Molyneux test** (cross-modal recognition and binding); supramodal IT; hearing front-end | 18 |
 | 6 | Stage-6 comparison: continual document learning, SPARC-style memory vs MeMo vs RAG | 21 |
 | 6 / natural images | Dorsal-like stream (location, size invariance) | 04 |
