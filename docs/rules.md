@@ -39,6 +39,7 @@ Each research note ends with its "try" ideas, and each one gets a backlog row wi
 ## Evidence and evaluation
 - Tune on the validation split only (`--split val`); the test split is used only for logged final runs.
 - Every reported number is copied from a `results/*.json` file, never estimated. Re-run seed 0 yourself before a number changes a decision.
+- **One machine per comparison.** Runs are exactly repeatable on one machine, not across machines (numpy / BLAS builds differ; tiny float differences grow over an online stream: R4-xm, cloud vs laptop, same code, Fashion s0 ACC 81.78 vs 81.93, FEW1 29.6 vs 24.8). Old and new arms of a comparison come from the same machine; rerun the baseline locally when it was made elsewhere.
 - Every change is logged in docs/iteration-log.md, failures included, with its brain mechanism and cost.
 - Claims follow research/12-prior-attempts-and-warnings.md: claim only where measured, against strong baselines (incl. GDumb).
 
