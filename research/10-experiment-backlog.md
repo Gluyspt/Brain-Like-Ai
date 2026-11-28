@@ -60,7 +60,7 @@ All adopted + dormant flags on, then leave-one-out. Next one: when stage 1 adopt
 | SHY down-scaling sleep (`ie_sleep=down`) | **candidate** (R4-2/4, 3 seeds): relearning → savings, MNIST FEW5 41.2 → 69.6, Fashion FGT 6.9 → 5.2; old-class drop 1.9 → 5.5 (MNIST), 2.3 → 3.7 (Fashion); needs a partner protecting old classes; partner for sleep found (`merge_protect=used`, R4-8), old-class partner still open | 01, 22, 24 |
 | Slow recovery of excitability across nights (`ie_rec`) | **dormant** (R4-4): trades few-shot for old-class drop, no net gain | 01 |
 | Outcome-error hippocampal writes (`hip_err`), recency-first replay (`rep_recent`) | **dormant** (R4-6 2×2): sleep still loses 6–14 pts vs wake; partner unknown | 03, 24 |
-| Fresh memories not merged at the next sleep (`merge_protect`) | **candidate pair with SHY** (R4-7, R4-8 2×2): with SHY, sleep protects the relearned memory (Fashion sleep > wake, 3 seeds), ACC F 83.5 / M 96.3; old-class drop 4.6 / 4.9 still fails → not default until fixed | 2026-11-28 diagnosis |
+| Fresh memories not merged at the next sleep (`merge_protect`) | **candidate** (R4-7, R4-8 2×2): removes the sleep loss alone; with SHY the apparent sleep > wake was a task confound (R4-8b: on task (2, 3) sleep − wake −3 to −4.5); ACC F 83.5 / M 96.3; old-class drop 4.6 / 4.9 fails → clean 2×2 in R4-8c | 2026-11-28 diagnosis |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |
