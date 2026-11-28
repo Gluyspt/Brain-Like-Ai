@@ -4,6 +4,14 @@
 Every step or decision about the model or its training must make it act more like a real brain. Name the brain mechanism behind each change in docs/iteration-log.md. A change that only raises an accuracy number with no brain analogue does not belong here, even if it scores better; when a brain-like and a score-only option compete, pick the brain-like one and log the cost. Accuracy targets (goal.md §4) are checks that the brain-like machinery works, not the objective.
 Name the mechanism and the `research/` file it comes from in docs/iteration-log.md.
 
+**Why the brain path, and at which level** (user directive, 2026-11-28). The aim is a model that one day understands like humans (goal.md §0); the brain is the only known system that does, so following its path keeps the work from drifting to "just works" methods that score without understanding. Follow the brain at Marr's levels:
+| Level | Question | How strictly |
+|---|---|---|
+| 1. Computational: what problem is solved | e.g. keep old memories while learning new ones | strictly: this is the goal |
+| 2. Algorithmic: how it is solved | e.g. fast hippocampus + slow cortex, sleep replay, local learning | closely: the brain-first rule lives here; no "just works" method here without a brain basis |
+| 3. Implementational: what it is built from | spikes, chemistry, wiring, speed | freely: numba, Rust, array tricks, whatever runs fastest, as long as results stay identical |
+The brain is the guide and the test (human signatures, docs/human-signatures.md), not a cage: keep strong non-brain baselines so the cost of each brain-like choice is known.
+
 **Copy the function, not the limitation** (user directive, 2026-11-27). Adopt a brain mechanism when it does a job (learning, protecting memories, generalising, thinking). Do not copy a weakness that exists only because of biology's costs (small capacity, slowness, forgetting with no benefit). When a brain limit is kept on purpose (e.g. fading memories), name the job it does (e.g. clearing noise, less interference, better generalisation; Richards & Frankland 2017 [known]) and show it measurably helps; otherwise drop it and log why. This refines the brain-first rule, it does not replace it: every mechanism must still come from the brain, and a change that only raises a score is still out.
 
 **Dormant, not rejected; test in combination** (user directive, 2026-11-27). Brain mechanisms often work only together with a partner (e.g. forgetting with consolidation, Richards & Frankland 2017; temporary synaptic changes with selective capture during replay, Clopath et al. 2008); one-at-a-time tests miss such pairs.
