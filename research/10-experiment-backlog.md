@@ -57,10 +57,10 @@ All adopted + dormant flags on, then leave-one-out. Next one: when stage 1 adopt
 | Event boundaries removed (continuous stream); surprise self-segmentation | **adopted** stream (S2-8/9/F2: test online 0.924, all stage-2 criteria pass); self-segmentation rejected (reset kills context recruitment; binding-only over-segments) | 24 |
 | Spacing effect test | tested (R4-3): none in SPARC (massed ≈ spaced), it does not forget between sessions | 2026-11-27 |
 | Early / late LTP with capture by sleep or surprise | **dormant** (R4-3): no benefit alone (without capture Fashion FGT 14.0); partner: **selective capture of what the hippocampus replays in sleep** | 24 |
-| SHY down-scaling sleep (`ie_sleep=down`) | **candidate** (R4-2/4, 3 seeds): relearning → savings, MNIST FEW5 41.2 → 69.6, Fashion FGT 6.9 → 5.2; old-class drop 1.9 → 5.5 (MNIST), 2.3 → 3.7 (Fashion); needs a partner protecting old classes | 01, 22, 24 |
+| SHY down-scaling sleep (`ie_sleep=down`) | **candidate** (R4-2/4, 3 seeds): relearning → savings, MNIST FEW5 41.2 → 69.6, Fashion FGT 6.9 → 5.2; old-class drop 1.9 → 5.5 (MNIST), 2.3 → 3.7 (Fashion); needs a partner protecting old classes; partner for sleep found (`merge_protect=used`, R4-8), old-class partner still open | 01, 22, 24 |
 | Slow recovery of excitability across nights (`ie_rec`) | **dormant** (R4-4): trades few-shot for old-class drop, no net gain | 01 |
 | Outcome-error hippocampal writes (`hip_err`), recency-first replay (`rep_recent`) | **dormant** (R4-6 2×2): sleep still loses 6–14 pts vs wake; partner unknown | 03, 24 |
-| Fresh memories not merged at the next sleep (`merge_protect`) | **candidate** (R4-7): removes the sleep loss after relearning; test with SHY (2×2) | 2026-11-28 diagnosis |
+| Fresh memories not merged at the next sleep (`merge_protect`) | **candidate pair with SHY** (R4-7, R4-8 2×2): with SHY, sleep protects the relearned memory (Fashion sleep > wake, 3 seeds), ACC F 83.5 / M 96.3; old-class drop 4.6 / 4.9 still fails → not default until fixed | 2026-11-28 diagnosis |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |
