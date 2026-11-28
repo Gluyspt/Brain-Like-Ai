@@ -1,0 +1,4 @@
+# R4-diag4: old-class drop after few-shot learning (tools/fewdiag.py), MNIST val seed 0
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data mnist --seed 0 --tag defaults > logs/fewdiag_defaults_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data mnist --seed 0 --tag shy --set ie_sleep=down > logs/fewdiag_shy_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data mnist --seed 0 --tag both --set ie_sleep=down merge_protect=used > logs/fewdiag_both_mnist0.log 2>&1
