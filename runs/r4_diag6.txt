@@ -1,0 +1,19 @@
+# R4-diag6: few-shot vs old-drop trade-off curves of recall-time mechanisms (excitability bias scale x hippocampal recall vote), tools/fewcurve.py, val
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 0 --tag d6_defaults > logs/fewcurve_d6_defaults_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 0 --tag d6_shy --set ie_sleep=down > logs/fewcurve_d6_shy_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 0 --tag d6_both --set ie_sleep=down merge_protect=used > logs/fewcurve_d6_both_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 0 --tag d6_defaults > logs/fewcurve_d6_defaults_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 0 --tag d6_shy --set ie_sleep=down > logs/fewcurve_d6_shy_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 0 --tag d6_both --set ie_sleep=down merge_protect=used > logs/fewcurve_d6_both_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 1 --tag d6_defaults > logs/fewcurve_d6_defaults_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 1 --tag d6_shy --set ie_sleep=down > logs/fewcurve_d6_shy_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 1 --tag d6_both --set ie_sleep=down merge_protect=used > logs/fewcurve_d6_both_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 1 --tag d6_defaults > logs/fewcurve_d6_defaults_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 1 --tag d6_shy --set ie_sleep=down > logs/fewcurve_d6_shy_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 1 --tag d6_both --set ie_sleep=down merge_protect=used > logs/fewcurve_d6_both_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 2 --tag d6_defaults > logs/fewcurve_d6_defaults_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 2 --tag d6_shy --set ie_sleep=down > logs/fewcurve_d6_shy_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 2 --tag d6_both --set ie_sleep=down merge_protect=used > logs/fewcurve_d6_both_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 2 --tag d6_defaults > logs/fewcurve_d6_defaults_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 2 --tag d6_shy --set ie_sleep=down > logs/fewcurve_d6_shy_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 2 --tag d6_both --set ie_sleep=down merge_protect=used > logs/fewcurve_d6_both_fashion2.log 2>&1
