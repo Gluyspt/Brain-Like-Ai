@@ -59,6 +59,7 @@ All adopted + dormant flags on, then leave-one-out. Next one: when stage 1 adopt
 | Early / late LTP with capture by sleep or surprise | **dormant** (R4-3): no benefit alone (without capture Fashion FGT 14.0); partner: **selective capture of what the hippocampus replays in sleep** | 24 |
 | SHY down-scaling sleep (`ie_sleep=down`) | **candidate** (R4-2/4, 3 seeds): relearning → savings, MNIST FEW5 41.2 → 69.6, Fashion FGT 6.9 → 5.2; old-class drop 1.9 → 5.5 (MNIST), 2.3 → 3.7 (Fashion); needs a partner protecting old classes | 01, 22, 24 |
 | Slow recovery of excitability across nights (`ie_rec`) | **dormant** (R4-4): trades few-shot for old-class drop, no net gain | 01 |
+| Outcome-error hippocampal writes (`hip_err`), recency-first replay (`rep_recent`) | **dormant** (R4-6 2×2): sleep still loses 6–14 pts vs wake; partner unknown | 03, 24 |
 | Schema assimilation (new item placed into an established map in one shot) | **adopted** (S3-5): top-insert novel pairs 1.00 after 1 fact (without 0.62, MLP 0.53–0.82) | 24 |
 | Sleep-time homeostasis (ie_sleep) / slow homeostasis (ie_tau 20000) | tested (R4-1): see R4-2 | 22, 24 |
 | Top-down conflict bias + second look (rethink loop) | **adopted** (It 12): old-class drop down, Fashion FGT down | 05 |
