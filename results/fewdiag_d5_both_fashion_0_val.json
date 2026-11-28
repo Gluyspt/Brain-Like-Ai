@@ -1,0 +1,60 @@
+{
+ "data": "fashion",
+ "seed": 0,
+ "split": "val",
+ "tag": "d5_both",
+ "overrides": {
+  "ie_sleep": "down",
+  "merge_protect": "used"
+ },
+ "base_old_acc": 0.8201347935973041,
+ "after_old_acc": 0.7714827295703454,
+ "FEW5": 0.75,
+ "FEW5_old_drop": 0.04865206402695876,
+ "sleep_parts": {
+  "used_before_shots": 2879,
+  "used_after_shots": 2886,
+  "recruited_by_shots": 7,
+  "old_acc_before_sleep": 0.7693765796124684,
+  "FEW5_before_sleep": 0.7579872204472844,
+  "old_acc_sleep_no_merge": 0.7799073294018534,
+  "FEW5_sleep_no_merge": 0.7460063897763578,
+  "old_acc_sleep_no_replay": 0.7716933445661331,
+  "FEW5_sleep_no_replay": 0.7507987220447284
+ },
+ "old_drop_before_sleep": 0.05075821398483571,
+ "old_drop_sleep_no_merge": 0.04022746419545076,
+ "old_drop_sleep_no_replay": 0.04844144903117098,
+ "n_old_test": 4748,
+ "n_flipped": 362,
+ "n_gained": 131,
+ "flipped_to_new_frac": 0.643646408839779,
+ "units": {
+  "used": 2259,
+  "n_new": 102,
+  "n_new_recruited": -620,
+  "bias_old_mean": -0.00013542540546040982,
+  "bias_new_mean": 0.01775408908724785,
+  "bias_old_frac_negative": 0.47705146036161333,
+  "r_old_mean": 0.014127152736914386,
+  "r_new_mean": 0.004832010582835806,
+  "r_target": 0.006640106241699867
+ },
+ "winners_new_share_flipped": 0.2674033149171271,
+ "winners_new_share_all_old": 0.03650659926986801,
+ "whatif_old_acc": {
+  "no_bias": 0.8045492839090144,
+  "new_units_neutral": 0.7790648694187026,
+  "old_shy_undone": 0.6756529064869419,
+  "all_shy_undone": 0.6733361415332771,
+  "readout_old_only": 0.8184498736310025
+ },
+ "whatif_old_drop": {
+  "no_bias": 0.015585509688289756,
+  "new_units_neutral": 0.04106992417860156,
+  "old_shy_undone": 0.14448188711036225,
+  "all_shy_undone": 0.14679865206402698,
+  "readout_old_only": 0.0016849199663016012
+ },
+ "base_old_acc_no_bias": 0.8300336983993261
+}
