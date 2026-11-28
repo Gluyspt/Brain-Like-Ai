@@ -1,0 +1,13 @@
+# R4-8b: same 2x2 as R4-8 with the relearned task fixed to (2, 3) (--sav_task 1) in every arm; only the arm/seed/dataset
+# combinations whose earlier run relearned another task. Main-stream numbers do not depend on this, so only life,sleepwake.
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 0 --data fashion --tag r4_8b_both_t23 --set ie_sleep=down merge_protect=used > logs/r4_8b_both_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 1 --data fashion --tag r4_8b_both_t23 --set ie_sleep=down merge_protect=used > logs/r4_8b_both_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 2 --data fashion --tag r4_8b_both_t23 --set ie_sleep=down merge_protect=used > logs/r4_8b_both_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 1 --data fashion --tag r4_8b_shy_t23 --set ie_sleep=down > logs/r4_8b_shy_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 1 --data mnist --tag r4_8b_neither_t23 > logs/r4_8b_neither_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 0 --data mnist --tag r4_8b_shy_t23 --set ie_sleep=down > logs/r4_8b_shy_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 1 --data mnist --tag r4_8b_shy_t23 --set ie_sleep=down > logs/r4_8b_shy_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 2 --data mnist --tag r4_8b_shy_t23 --set ie_sleep=down > logs/r4_8b_shy_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 0 --data mnist --tag r4_8b_protect_t23 --set merge_protect=used > logs/r4_8b_protect_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 1 --data mnist --tag r4_8b_protect_t23 --set merge_protect=used > logs/r4_8b_protect_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only life,sleepwake --sav_task 1 --seed 2 --data mnist --tag r4_8b_protect_t23 --set merge_protect=used > logs/r4_8b_protect_mnist2.log 2>&1

@@ -103,6 +103,7 @@ def main():
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
     ap.add_argument('--no-share', action='store_true', help='retrain the few-shot base model instead of reusing the main stream after task 4')
     ap.add_argument('--tag', default='')
+    ap.add_argument('--sav_task', type=int, default=None, help='life/savings: relearn this old task (0-3) instead of the most-forgotten one (removes the task confound between arms)')
     ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life,space,sleepwake (sleepwake needs life)')
     ap.add_argument('--out', default='results')
     a = ap.parse_args()
@@ -115,6 +116,8 @@ def main():
     parts = a.only.split(',')
     res = dict(model=a.model, data=a.data, seed=a.seed, split=a.split, quick=a.quick, cap=cap,
                overrides=overrides, tag=a.tag)
+    if a.sav_task is not None:
+        res['sav_task_fixed'] = a.sav_task
     T0 = time.time()
     all_cls = list(range(10))
 
@@ -314,7 +317,7 @@ def main():
                 curves[t] = curve
                 peak[t] = pacc(t, seen)
         final = {t: pacc(t, all_cls) for t in range(4)}
-        jt = max(range(4), key=lambda t: peak[t] - final[t])
+        jt = max(range(4), key=lambda t: peak[t] - final[t]) if a.sav_task is None else a.sav_task
         thr = 0.95 * peak[jt]
         n_first = next((n for n, v in curves[jt] if v >= thr), None)
         others = [c for c in all_cls if c not in TASKS[jt]]
