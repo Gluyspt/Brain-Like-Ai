@@ -1,0 +1,6 @@
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --seed 0 --data fashion --tag r4_7_used --set merge_protect=used > logs/r4_7_used_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --seed 1 --data fashion --tag r4_7_used --set merge_protect=used > logs/r4_7_used_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --seed 2 --data fashion --tag r4_7_used --set merge_protect=used > logs/r4_7_used_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --seed 0 --data mnist --tag r4_7_used --set merge_protect=used > logs/r4_7_used_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --seed 1 --data fashion --tag r4_7_new --set merge_protect=new > logs/r4_7_new_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --seed 0 --data mnist --tag r4_7_new --set merge_protect=new > logs/r4_7_new_mnist0.log 2>&1

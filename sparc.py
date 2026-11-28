@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, hip_err=False, rep_recent=None, early_ltp=False, e_tau=1000.0, tag_z=None,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, hip_err=False, rep_recent=None, merge_protect=None, early_ltp=False, e_tau=1000.0, tag_z=None,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -129,6 +129,11 @@ class SPARC:
         # input also opens the write gate, not only sensory novelty; recency-first replay (research/03):
         # sleep replays traces written recently more often (weight exp(-age / rep_recent), age in writes)
         self.hip_err, self.rep_recent = hip_err, rep_recent
+        # fresh memories are not compressed at the next sleep (they are stabilised first; gist forms over many
+        # nights: Winocur & Moscovitch transformation hypothesis [known]). merge_protect='new': units recruited
+        # since the last sleep; 'used': also units refined since then (reactivated, labile)
+        self.merge_protect = merge_protect
+        self.fresh = np.zeros(self.N, bool)
         self.h_n = 0
         # slow cortical readout, trained only in sleep
         self.R = np.zeros((self.C, self.N), np.float32)
@@ -317,6 +322,7 @@ class SPARC:
             self.r[j] = 0.0
             self.r_eff[j] = 0.0
             self.blab[j] = -1 if c is None else c
+            self.fresh[j] = True
             self.used += 1
             self.n_recruit += 1
             a = self.W[:self.used] @ x
@@ -333,6 +339,8 @@ class SPARC:
             g = (eta * np.maximum(a[win], 0))[:, None]
             self.W[win] = _unit(self.W[win] + g * (x[None] - self.W[win]))
             self.n[win] += 1
+            if self.merge_protect == 'used':
+                self.fresh[win] = True
             if self._trace is not None and self.trace_w > 0:
                 T = self._trace[self._trace < self.used]
                 if self.refine_gate and self.gate_glimpses and cg is not None:
@@ -460,7 +468,8 @@ class SPARC:
             else:
                 self.r_eff[:] = self.r                     # sleep: homeostatic excitability catches up
         if self.merge_frac > 0 and self.merge_at_task_end and self.used > (1 - self.merge_frac) * self.N:
-            self.consolidate()
+            self.consolidate(protect=self.merge_protect is not None)
+        self.fresh[:] = False
         if self.M > 0 and self.h_n > 0:
             self.sleep()
 
@@ -509,7 +518,7 @@ class SPARC:
             arr[:m] = arr[:n][keep]
         self.h_n = m
 
-    def consolidate(self):
+    def consolidate(self, protect=False):
         """Structural consolidation: free merge_frac of the budget by merging the most similar
         prototype pairs within the classes holding more than a fair (water-filled) share.
         Merged unit = usage-weighted mean; readout synapses add; hippocampal indices follow the unit."""
@@ -536,6 +545,9 @@ class SPARC:
         into = np.arange(u)                        # merged-into pointer
         keep_all = []
         for g, idx in groups.items():
+            if protect:                            # fresh units are kept as they are at this sleep
+                keep_all += [i for i in idx if self.fresh[i]]
+                idx = [i for i in idx if not self.fresh[i]]
             idx = list(idx)
             while len(idx) > cap:
                 Wg = self.W[idx]
@@ -577,6 +589,7 @@ class SPARC:
         self.r[:m] = self.r[keep]; self.r[m:u] = 0
         self.r_eff[:m] = self.r_eff[keep]; self.r_eff[m:u] = 0
         self.blab[:m] = self.blab[keep]; self.blab[m:u] = -1
+        self.fresh[:m] = self.fresh[keep]; self.fresh[m:u] = False
         for Mx in (self.A, self.R, self.E) + ((self.Ae,) if self.early_ltp else ()):
             Mx[:, :m] = Mx[:, keep]; Mx[:, m:u] = 0
         if self.h_n:
