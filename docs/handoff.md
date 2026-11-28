@@ -18,8 +18,8 @@ Read this first in the new session, then `CLAUDE.md`, `docs/rules.md`, `goal.md`
 | **merge_protect=used**: sleep loss gone (sleep − immediate −4.0 → +1.0); a day awake still beats sleep | R4-7 → **candidate** |
 | Dormant (kept, flag off): early LTP, outcome-error writes, recency-first replay, slow excitability recovery, spacing has no effect | R4-3, R4-4, R4-6 |
 
-## Next steps, in order
-1. **Finish R4-7**: the 'new' arm may not have finished in the cloud. If `results/sparc_r4_7_new_fashion_1_val.json` / `..._mnist_0_val.json` are missing, run the last two lines of `runs/r4_7.txt` and add them to the R4-7 row.
+## Next steps, in order (nothing is running; all results are committed)
+1. ~~Finish R4-7~~ done in the cloud: 'used' beats 'new' (Fashion s1: sleep − immediate +0.5 vs −1.5), so use `merge_protect=used`.
 2. **R4-8: 2×2 SHY × merge_protect** (the two candidates may be partners: SHY fixes relearning, merge_protect fixes sleep). Arms: neither (exists), SHY only (exists: `r4_iedown`, `r4_5_sw_shy`), protect only (R4-7), **both** (to run): `--set ie_sleep=down merge_protect=used`, `--only main,few,life,sleepwake`, val, Fashion seeds 0–2 + MNIST seeds 0–2. Judge with old vs new tables and the two human questions. Target: savings, sleep ≥ immediate, old-class drop < 2.
 3. **Old-class drop under SHY** (the blocker for adopting SHY): diagnose like R4-diag3. On a copy after few-shot learning, compare excitability (`r`, `r_eff`) of old- vs new-class units and which units win old-class test images.
 4. **Fair re-test of early LTP** (dormant) with its partner: lock in only what the hippocampus replays in sleep (selective capture), not every change.
