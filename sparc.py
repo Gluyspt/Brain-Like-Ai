@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, hip_err=False, rep_recent=None, merge_protect=None, early_ltp=False, e_tau=1000.0, tag_z=None,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, ie_recall=True, hip_err=False, rep_recent=None, merge_protect=None, early_ltp=False, e_tau=1000.0, tag_z=None,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -101,6 +101,10 @@ class SPARC:
         self.ie_sleep = ie_sleep
         self.r_eff = np.zeros(self.N)
         self.ie_rec = ie_rec      # SHY sleep: fraction of the down-regulation kept per night (<1: slow recovery over nights)
+        # ie_recall=False: intrinsic excitability biases memory *allocation* (which units win and change while
+        # learning; Han et al. 2007, Yiu et al. 2014, Josselyn & Tonegawa 2020 [known]; research/24), while recall
+        # is driven by the cue's match to stored synapses, so the bias is left out of encoding for prediction
+        self.ie_recall = ie_recall
         self.blab = np.full(self.N, -1)      # birth label of each unit (engram tag; diagnostic unless engram_tag)
         # engram tag: consolidation merges units only within the memory they were formed for, so a fading
         # memory's units are never absorbed by a look-alike class (silent engram kept for reactivation)
@@ -207,15 +211,16 @@ class SPARC:
         r = self.r_eff[:u] if self.ie_sleep else self.r[:u]
         return (self.ie_gamma * np.clip(1.0 - r / tgt, -1.0, 1.0)).astype(np.float32)
 
-    def _code(self, a, top_down=None):
+    def _code(self, a, top_down=None, recall=False):
         """k-WTA on activations a (n, used) -> sparse code (n, N); winners chosen on
-        a + intrinsic excitability (+ optional top-down attentional gain)."""
+        a + intrinsic excitability (+ optional top-down attentional gain). recall=True: encoding for prediction
+        (no excitability bias when ie_recall is False)."""
         n, u = a.shape
         H = np.zeros((n, self.N), np.float32)
         if u == 0:
             return H
         k = min(self.k, u)
-        sel = a + self._bias(u)
+        sel = a if (recall and not self.ie_recall) else a + self._bias(u)
         if top_down is not None:
             sel = sel + top_down
         idx = np.argpartition(-sel, k - 1, axis=1)[:, :k]
@@ -238,7 +243,7 @@ class SPARC:
     def encode(self, X):
         x = self._pre(X)
         a = x @ self.W[:self.used].T
-        return self._code(a), a
+        return self._code(a, recall=True), a
 
     # ---------- learning (awake) ----------
     def _shift(self, X):
@@ -615,7 +620,7 @@ class SPARC:
                 An = _unit(self.A[allowed])[:, :self.used]
                 d = np.abs(An[c1[r]] - An[c2[r]])
                 d = d / (d.max(1, keepdims=True) + 1e-8)
-                H2 = self._code(a[r], top_down=self.rethink * d)        # second look
+                H2 = self._code(a[r], top_down=self.rethink * d, recall=True)        # second look
                 p[r] = self._probs(H2, X[r], allowed)
         return p
 
