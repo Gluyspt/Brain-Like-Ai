@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, early_ltp=False, e_tau=1000.0, tag_z=None,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, hip_err=False, rep_recent=None, early_ltp=False, e_tau=1000.0, tag_z=None,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -124,6 +124,11 @@ class SPARC:
         self.h_idx = np.zeros((max(hip_M, 1), k_it), np.int64)
         self.h_val = np.zeros((max(hip_M, 1), k_it), np.float32)
         self.h_lab = np.full(max(hip_M, 1), -1, np.int64)
+        self.h_t = np.zeros(max(hip_M, 1), np.int64)        # write time (in writes) of each trace
+        # outcome-error encoding (hippocampal-VTA loop, Lisman & Grace 2005): a wrong guess about a labelled
+        # input also opens the write gate, not only sensory novelty; recency-first replay (research/03):
+        # sleep replays traces written recently more often (weight exp(-age / rep_recent), age in writes)
+        self.hip_err, self.rep_recent = hip_err, rep_recent
         self.h_n = 0
         # slow cortical readout, trained only in sleep
         self.R = np.zeros((self.C, self.N), np.float32)
@@ -378,6 +383,10 @@ class SPARC:
                 self.A[c] += dA
             if self.M > 0:
                 p = 1.0 / (1.0 + np.exp(-self.hip_gain * z))   # novelty-gated memory write
+                if self.hip_err and p < 1.0:
+                    seen_ = np.where(self.nc > 0)[0]
+                    if len(seen_) > 1 and seen_[np.argmax(_unit(self.A[seen_]) @ (h / (np.linalg.norm(h) + 1e-8)))] != c:
+                        p = 1.0                                  # wrong guess: outcome error -> encode
                 if self.rng.rand() < p:
                     self._hip_write(h, c)
         if self.glimpses > 1 and self.used:
@@ -438,6 +447,7 @@ class SPARC:
             cand = np.where(self.h_lab[:self.h_n] == cnt.argmax())[0]
             j = int(self.rng.choice(cand))
         self.h_idx[j], self.h_val[j], self.h_lab[j] = idx, val, c
+        self.h_t[j] = self.n_writes
         self.n_writes += 1
 
     # ---------- sleep ----------
@@ -468,7 +478,11 @@ class SPARC:
         n_rep = self.sleep_epochs * self.h_n
         for _ in range(n_rep):
             c = classes[self.rng.randint(len(classes))]
-            j = by_c[c][self.rng.randint(len(by_c[c]))]
+            if self.rep_recent:
+                cand = by_c[c]; w = np.exp(-(self.n_writes - self.h_t[cand]) / self.rep_recent)
+                j = cand[self.rng.choice(len(cand), p=w / w.sum())]
+            else:
+                j = by_c[c][self.rng.randint(len(by_c[c]))]
             idx, val = self.h_idx[j], self.h_val[j]
             val = val / (np.linalg.norm(val) + 1e-8)
             logit = self.R[classes][:, idx] @ val
@@ -491,7 +505,7 @@ class SPARC:
         keep = ~((pred != self.h_lab[:n]) & (q > self.clean_theta))
         m = int(keep.sum())
         self.n_cleaned += n - m
-        for arr in (self.h_idx, self.h_val, self.h_lab):
+        for arr in (self.h_idx, self.h_val, self.h_lab, self.h_t):
             arr[:m] = arr[:n][keep]
         self.h_n = m
 
