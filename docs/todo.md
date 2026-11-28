@@ -52,15 +52,19 @@ Order on your own PC: speed steps 3 → 4 first (CPU, helps every machine), then
 
 ## Moving to your own PC
 1. **Get the code**: `git clone` the repo; work on a branch; `main` holds the merged state.
-2. **Python**: 3.11+ with `numpy` (required) and `numba` (optional, faster). No GPU and no torch needed. `pip install numpy numba`.
+2. **Python**: 3.11+ in a project venv (`.venv/`, gitignored; never install into global Python). No GPU and no torch needed.
+   - Windows: `python -m venv .venv` then `.\.venv\Scripts\python.exe -m pip install --upgrade pip numpy numba scipy`
+   - Linux/macOS: `python3 -m venv .venv` then `.venv/bin/python -m pip install --upgrade pip numpy numba scipy`
+   - numba is optional (faster); with numba, scipy is needed too (numba's compiled `np.dot` uses scipy's BLAS; without it the SPARC run crashes with "scipy 0.16+ is required").
+   - Windows only: add the one-thread variables to `.venv\Scripts\Activate.ps1` so your own terminal gets them on activation (step 4).
 3. **Data** (`data_cache/`, not in git; `data.py` downloads MNIST and Fashion-MNIST automatically):
    - MNIST: `https://raw.githubusercontent.com/fgnt/mnist/master/<file>`
    - Fashion: `https://raw.githubusercontent.com/zalandoresearch/fashion-mnist/master/data/fashion/<file>`
    - CIFAR-10: `https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz` (or the mirror `https://storage.googleapis.com/tensorflow/tf-keras-datasets/cifar-10-python.tar.gz`) into `data_cache/cifar_dl/`; check md5 `c58f30108f718f92721af3b95e74349a`. The loader uses a restricted unpickler, so keep it that way.
-4. **Cores**: the cloud machine had 4. Run one bench process per core, each with `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1`, e.g. `xargs -P <cores> -I{} sh -c '{}' < runs/<list>.txt`. More cores = more experiments in parallel.
+4. **Cores**: the cloud machine had 4, the laptop 16 logical. One thread per run (`OMP/OPENBLAS/MKL/NUMBA_NUM_THREADS=1`: set for Claude Code in `.claude/settings.json`, for every job by `tools/run_list.py`). Run lists: `<venv python> tools/run_list.py runs/<list>.txt` (default cores − 1 at once; jobs use the Python that started it). More cores = more experiments in parallel.
 5. **Expected times** (one core): full stage-1 bench run (main, few, lbl, rev) ≈ 20–25 min with eye movements, ≈ 10 min without; quick screen ≈ 2–4 min; stage-2 `seqbench.py` ≈ 5–15 min.
 6. **Claude Code locally**: open the repo folder. `CLAUDE.md` and `.claude/agents/*.md` load automatically (agent types register at session start). Rules: `docs/rules.md`; loop: `docs/loop.md`.
-7. **Check the setup**: `python bench.py --model b4 --data mnist --seed 0 --split val` should give ACC ≈ 0.81 in seconds; `python bench.py --model sparc --data mnist --seed 0 --split val --quick` gives ACC ≈ 0.95.
+7. **Check the setup** (with the venv Python; use `--tag` so the tracked results JSONs are not overwritten): `python bench.py --model b4 --data mnist --seed 0 --split val` should give ACC ≈ 0.81 in seconds; `python bench.py --model sparc --data mnist --seed 0 --split val --quick` gives ACC ≈ 0.95.
 
 ## Other engineering to-dos
 - Result files keep growing (~300 JSONs): consider `results/<round>/` subfolders and an index.
