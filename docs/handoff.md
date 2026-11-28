@@ -29,8 +29,8 @@ Read this first in the new session, then `CLAUDE.md`, `docs/rules.md`, `goal.md`
 8. Paper (user's question, 2026-11-28): estimate 3–6 weeks to a preprint / workshop paper (claim: one local-learning system with continual learning, relearning and relational transfer with human-like signatures; scaling as future work). Not started; user declined a published-work section in ARCHITECTURE.md for now.
 
 ## How to run on the laptop (Windows)
-- `pip install numpy numba`; data downloads itself into `data_cache/` (see `docs/todo.md`, "Moving to your own PC").
-- Parallel runs: `python tools/run_list.py runs/<list>.txt -j <cores-1>` (no xargs needed; one thread per job; retries once).
+- Set up on 2026-11-28: project venv `.venv` (numpy, numba, scipy; numba needs scipy for `np.dot`), all three datasets cached, checks pass (B4 0.8118, SPARC quick 0.9422). Always run through `.\.venv\Scripts\python.exe` (`CLAUDE.md`; steps in `docs/todo.md`, "Moving to your own PC").
+- Parallel runs: `.\.venv\Scripts\python.exe tools/run_list.py runs/<list>.txt -j <n>` (no xargs needed; one thread per job; retries once). Laptop: 8 physical / 16 logical cores, 14 GB RAM; 6 at once leaves room.
 - Smoke: `python bench.py --model sparc --data mnist --seed 0 --split val --quick` → ACC ≈ 0.94.
 - Full `--only main,few,life,sleepwake` run ≈ 13–15 min per run on one core (cloud, 4 in parallel).
 - Commit on the working branch; fast-forward `main` when a task is complete; never force-push `main`.
