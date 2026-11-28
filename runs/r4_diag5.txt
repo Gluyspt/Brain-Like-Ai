@@ -1,0 +1,7 @@
+# R4-diag5: old-class drop before / after the post-shot sleep, sleep without merging / replay (tools/fewdiag.py), val seed 0
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data mnist --seed 0 --tag d5_defaults > logs/fewdiag_d5_defaults_mnist.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data mnist --seed 0 --tag d5_shy --set ie_sleep=down > logs/fewdiag_d5_shy_mnist.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data mnist --seed 0 --tag d5_both --set ie_sleep=down merge_protect=used > logs/fewdiag_d5_both_mnist.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data fashion --seed 0 --tag d5_defaults > logs/fewdiag_d5_defaults_fashion.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data fashion --seed 0 --tag d5_shy --set ie_sleep=down > logs/fewdiag_d5_shy_fashion.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewdiag.py --data fashion --seed 0 --tag d5_both --set ie_sleep=down merge_protect=used > logs/fewdiag_d5_both_fashion.log 2>&1

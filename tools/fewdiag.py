@@ -62,9 +62,23 @@ def main():
     m = copy.deepcopy(base)
     for i in np.stack([i8, i9], 1).ravel():
         m.learn(Xtr[i:i + 1], ytr[i:i + 1])
-    m.end_task()
     mo = np.isin(yev, old)
     Xo, yo = Xev[mo], yev[mo]
+    # before the post-shot sleep, and that sleep with parts switched off (R4-diag5)
+    pre = {'used_before_shots': int(base.used), 'used_after_shots': int(m.used), 'recruited_by_shots': int(m.used - base.used),
+           'old_acc_before_sleep': float((m.predict(Xo, all_cls) == yo).mean()),
+           'FEW5_before_sleep': acc_on(m, Xev, yev, new, all_cls)}
+    for name, ch in (('no_merge', {'merge_frac': 0.0}), ('no_replay', 'replay')):
+        M = copy.deepcopy(m)
+        if ch == 'replay':
+            M.sleep = lambda: None
+        else:
+            for k_, v_ in ch.items():
+                setattr(M, k_, v_)
+        M.end_task()
+        pre[f'old_acc_sleep_{name}'] = float((M.predict(Xo, all_cls) == yo).mean())
+        pre[f'FEW5_sleep_{name}'] = acc_on(M, Xev, yev, new, all_cls)
+    m.end_task()
     p0 = base.predict(Xo, old)                         # base model knows only old classes (bench: allowed = old)
     p1 = m.predict(Xo, all_cls)
     flipped = (p0 == yo) & (p1 != yo)
@@ -72,6 +86,10 @@ def main():
                base_old_acc=base_old, after_old_acc=float((p1 == yo).mean()),
                FEW5=acc_on(m, Xev, yev, new, all_cls))
     res['FEW5_old_drop'] = base_old - res['after_old_acc']
+    res['sleep_parts'] = pre
+    res['old_drop_before_sleep'] = base_old - pre['old_acc_before_sleep']
+    res['old_drop_sleep_no_merge'] = base_old - pre['old_acc_sleep_no_merge']
+    res['old_drop_sleep_no_replay'] = base_old - pre['old_acc_sleep_no_replay']
     res['n_old_test'] = int(mo.sum()); res['n_flipped'] = int(flipped.sum())
     res['n_gained'] = int(((p0 != yo) & (p1 == yo)).sum())
     res['flipped_to_new_frac'] = float(np.isin(p1[flipped], new).mean()) if flipped.any() else None
