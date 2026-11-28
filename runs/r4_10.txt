@@ -1,0 +1,25 @@
+# R4-10: mt_reset (label outcome error recruits on the labelled view despite glimpse continuity; research/01). vs R4-8c neither / SHY; plus fewcurve frontier
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 0 --data fashion --tag r4_10_mtr_t23 --set mt_reset=True > logs/r4_10_mtr_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 0 --data fashion --tag r4_10_mtr_shy_t23 --set mt_reset=True ie_sleep=down > logs/r4_10_mtr_shy_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 0 --data mnist --tag r4_10_mtr_t23 --set mt_reset=True > logs/r4_10_mtr_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 0 --data mnist --tag r4_10_mtr_shy_t23 --set mt_reset=True ie_sleep=down > logs/r4_10_mtr_shy_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 1 --data fashion --tag r4_10_mtr_t23 --set mt_reset=True > logs/r4_10_mtr_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 1 --data fashion --tag r4_10_mtr_shy_t23 --set mt_reset=True ie_sleep=down > logs/r4_10_mtr_shy_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 1 --data mnist --tag r4_10_mtr_t23 --set mt_reset=True > logs/r4_10_mtr_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 1 --data mnist --tag r4_10_mtr_shy_t23 --set mt_reset=True ie_sleep=down > logs/r4_10_mtr_shy_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 2 --data fashion --tag r4_10_mtr_t23 --set mt_reset=True > logs/r4_10_mtr_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 2 --data fashion --tag r4_10_mtr_shy_t23 --set mt_reset=True ie_sleep=down > logs/r4_10_mtr_shy_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 2 --data mnist --tag r4_10_mtr_t23 --set mt_reset=True > logs/r4_10_mtr_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python bench.py --model sparc --split val --only main,few,life,sleepwake --sav_task 1 --seed 2 --data mnist --tag r4_10_mtr_shy_t23 --set mt_reset=True ie_sleep=down > logs/r4_10_mtr_shy_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 0 --tag d6_mtr --set mt_reset=True > logs/fewcurve_d6_mtr_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 0 --tag d6_mtr_shy --set mt_reset=True ie_sleep=down > logs/fewcurve_d6_mtr_shy_fashion0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 0 --tag d6_mtr --set mt_reset=True > logs/fewcurve_d6_mtr_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 0 --tag d6_mtr_shy --set mt_reset=True ie_sleep=down > logs/fewcurve_d6_mtr_shy_mnist0.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 1 --tag d6_mtr --set mt_reset=True > logs/fewcurve_d6_mtr_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 1 --tag d6_mtr_shy --set mt_reset=True ie_sleep=down > logs/fewcurve_d6_mtr_shy_fashion1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 1 --tag d6_mtr --set mt_reset=True > logs/fewcurve_d6_mtr_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 1 --tag d6_mtr_shy --set mt_reset=True ie_sleep=down > logs/fewcurve_d6_mtr_shy_mnist1.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 2 --tag d6_mtr --set mt_reset=True > logs/fewcurve_d6_mtr_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data fashion --seed 2 --tag d6_mtr_shy --set mt_reset=True ie_sleep=down > logs/fewcurve_d6_mtr_shy_fashion2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 2 --tag d6_mtr --set mt_reset=True > logs/fewcurve_d6_mtr_mnist2.log 2>&1
+OMP_NUM_THREADS=1 python tools/fewcurve.py --data mnist --seed 2 --tag d6_mtr_shy --set mt_reset=True ie_sleep=down > logs/fewcurve_d6_mtr_shy_mnist2.log 2>&1

@@ -48,7 +48,7 @@ class SPARC:
                  mix='conf', beta=20.0, n_cls=10, match_track=True,
                  correct=True, err_theta=0.5, reopen=0.2, ltd=1.0, sleep_clean=True, clean_theta=0.9,
                  lab_tau=50.0, arbitrate=True, unc_tau=200.0,
-                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, ie_recall=True, hip_err=False, rep_recent=None, merge_protect=None, early_ltp=False, e_tau=1000.0, tag_z=None,
+                 ie_gamma=0.05, ie_tau=2000.0, cls_gate=50.0, ie_sleep=False, ie_rec=1.0, ie_recall=True, mt_reset=False, hip_err=False, rep_recent=None, merge_protect=None, early_ltp=False, e_tau=1000.0, tag_z=None,
                  kc_n=0, kc_fan=10, kc_k=200, kc_beta=20.0):
         self.rng = np.random.RandomState(seed)
         self.N, self.k, self.rho, self.C = n_it, k_it, rho, n_cls
@@ -105,6 +105,11 @@ class SPARC:
         # learning; Han et al. 2007, Yiu et al. 2014, Josselyn & Tonegawa 2020 [known]; research/24), while recall
         # is driven by the cue's match to stored synapses, so the bias is left out of encoding for prediction
         self.ie_recall = ie_recall
+        # mt_reset: a label that contradicts the prediction (or names a new class) is an outcome error, signalled by
+        # noradrenaline as unexpected uncertainty -> network reset (Yu & Dayan 2005; Bouret & Sara 2005 [known];
+        # research/01). It recruits even on the labelled fixated view, where glimpse continuity otherwise suppresses
+        # (sensory) novelty; with eye movements on, match tracking could not recruit at all before this flag
+        self.mt_reset = mt_reset
         self.blab = np.full(self.N, -1)      # birth label of each unit (engram tag; diagnostic unless engram_tag)
         # engram tag: consolidation merges units only within the memory they were formed for, so a fading
         # memory's units are never absorbed by a look-alike class (silent engram kept for reactivation)
@@ -295,6 +300,7 @@ class SPARC:
         self.s_mu += r * d
         self.s_var += r * (d * d - self.s_var)
         c = None if y is None else int(np.asarray(y).ravel()[0])
+        mt_fired = False
         if not novel and self.match_track and c is not None and u:
             # match tracking: teaching signal contradicts the top-down prediction -> raise vigilance
             seen = np.where(self.nc > 0)[0]
@@ -305,6 +311,7 @@ class SPARC:
                 pred = seen[np.argmax(_unit(self.A[seen]) @ h0)]
                 novel = pred != c
             self.n_mt += int(novel)
+            mt_fired = novel
         lvq = None
         if self.it_lvq > 0 and c is not None and u and self.nc[c] > 0:
             seen = np.where(self.nc > 0)[0]
@@ -317,7 +324,7 @@ class SPARC:
                 lab = np.where(Aw.max(0) > 0, Aw.argmax(0), -1)
                 bad = win0[(lab >= 0) & (lab != c)]
                 lvq = (bad, float(pf[j]), a[bad].copy())
-        if self._trace is not None:
+        if self._trace is not None and not (self.mt_reset and mt_fired):
             novel = False      # later glimpse of the same object: continuity suppresses novelty
         if novel and self.used < self.N:
             # mismatch -> recruit a fresh unit, one-shot imprint
