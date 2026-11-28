@@ -68,7 +68,8 @@ def auroc(neg, pos):
     return float((rp - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg)))
 
 
-def run_stream(model, Xtr, ytr, Xev, yev, cap, label_frac=None, rng=None, tasks=TASKS, log=True):
+def run_stream(model, Xtr, ytr, Xev, yev, cap, label_frac=None, rng=None, tasks=TASKS, log=True, snap_after=None, snaps=None):
+    """snap_after=t: store a deep copy of the model after task t in snaps[t] (shared training, identical results)."""
     nt = len(tasks)
     accm = np.full((nt, nt), np.nan)
     seen = []
@@ -83,6 +84,8 @@ def run_stream(model, Xtr, ytr, Xev, yev, cap, label_frac=None, rng=None, tasks=
         seen += list(task)
         for j in range(t + 1):
             accm[t, j] = acc_on(model, Xev, yev, tasks[j], seen)
+        if snap_after is not None and t == snap_after:
+            snaps[t] = copy.deepcopy(model)
         if log:
             print(f'  task {t} {task}: n={len(idx)} {time.time()-t0:.1f}s  acc_per_task=' +
                   ' '.join(f'{a:.3f}' for a in accm[t, :t + 1]), flush=True)
@@ -98,6 +101,7 @@ def main():
     ap.add_argument('--quick', action='store_true', help='cap train at 1000 samples per class')
     ap.add_argument('--cap', type=int, default=None, help='cap train at N samples per class (data-scaling runs)')
     ap.add_argument('--set', nargs='*', default=[], help='model overrides key=val')
+    ap.add_argument('--no-share', action='store_true', help='retrain the few-shot base model instead of reusing the main stream after task 4')
     ap.add_argument('--tag', default='')
     ap.add_argument('--only', default='main,few,lbl', help='subset of main,few,lbl,rev,life,space,sleepwake (sleepwake needs life)')
     ap.add_argument('--out', default='results')
@@ -124,7 +128,9 @@ def main():
             res['ACC'] = acc_on(model, Xev, yev, all_cls, all_cls)
             res['FGT'] = None
         else:
-            accm = run_stream(model, Xtr, ytr, Xev, yev, cap)
+            share = 'few' in parts or 'space' in parts
+            snaps = {}
+            accm = run_stream(model, Xtr, ytr, Xev, yev, cap, snap_after=3 if (share and not a.no_share) else None, snaps=snaps)
             res['acc_matrix'] = accm.tolist()
             res['ACC'] = acc_on(model, Xev, yev, all_cls, all_cls)
             res['FGT'] = float(np.mean([np.nanmax(accm[j:, j]) - accm[-1, j] for j in range(len(TASKS) - 1)]))
@@ -139,8 +145,11 @@ def main():
     # ---- few-shot + novelty: learn tasks 1-4, then k labelled shots of classes 8, 9 ----
     if ('few' in parts or 'space' in parts) and a.model != 'b3':
         print('[few-shot / novelty]', flush=True)
-        model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
-        run_stream(model, Xtr, ytr, Xev, yev, cap, tasks=TASKS[:4], log=False)
+        if 'main' in parts and not a.no_share and a.model != 'b3' and 3 in snaps:
+            model = snaps.pop(3)                           # same stream, same seed: the main model after task 4
+        else:
+            model = make_model(a.model, a.seed, overrides, dim=Xtr.shape[1])
+            run_stream(model, Xtr, ytr, Xev, yev, cap, tasks=TASKS[:4], log=False)
         old = list(range(8))
         base_old = acc_on(model, Xev, yev, old, old)
         res['FEW_base_old_acc'] = base_old

@@ -13,6 +13,20 @@ Research to-dos live in `research/10-experiment-backlog.md` and `docs/roadmap.md
 
 Why per-run speed matters: SPARC learns one sample at a time (rule P2), so time goes into many small calls, not big matrix operations. Python overhead is most of the cost, which compiled code removes. Rule for every speed change: check that predictions are identical before and after (`regress.py`-style check: same seed, same stream, compare all predictions).
 
+## Done 2026-11-28
+- **Shared training in bench.py**: the few-shot / spacing parts reuse a copy of the main model after task 4 instead of retraining it (same stream, same seed; prediction uses no randomness). Check: `--only main,few,space --quick` MNIST seed 0, every number in the results JSON identical with and without `--no-share`; **130 s → 90 s (−31 %)**. `--no-share` restores the old behaviour. (LIFE's streams hold back 10 % of each class for reminders/relearning, so they cannot share with main without changing results; not done.)
+- **tools/run_list.py**: runs a run list N at a time on Windows / macOS / Linux (no xargs), one thread per job, retry once, summary. `python tools/run_list.py runs/<list>.txt -j 6`.
+
+## Faster code, same results (language / tooling plan)
+| Option | What | Expected gain per run | Effort | Windows |
+|---|---|---|---|---|
+| **numba** on the hot loop (`_learn_view`, V1 encode per view, k-WTA, readout update) | Python functions compiled to machine code at first call; numpy-only code style | ~2–4× on the training loop (Python call overhead is most of it) | low–medium: rewrite ~200 lines as plain loops/arrays | `pip install numba`, works |
+| **Rust core via PyO3 / maturin** | the whole per-sample step (V1 + IT + readouts + hippocampus) in Rust, called from Python | ~10–30× | high: second codebase, every change to the model must be made twice while the design still moves | works (MSVC toolchain) |
+| Cython | Python-like code compiled to C | ~ numba | medium; needs a C compiler on Windows | works |
+| C++ / pybind11 | like Rust | like Rust | high | works |
+| PyPy | faster Python interpreter | little (numpy-heavy code) | low | partly |
+Recommendation: numba first (keeps one Python codebase, design can keep changing), Rust when the stage-1 design is frozen or for scale (stages 6–7). Every change: exact-match check of all predictions before/after (as for the shared training).
+
 ## Profile (2026-11-27, cProfile, Fashion, `--quick --only main`, eye movements on, 1 thread; 4 other runs on the 4 cores, so absolute times are inflated, shares are what matter)
 Total 66.6 s, 8.7 M Python function calls, 30 000 views learned (10 000 images × 3 glimpses).
 
